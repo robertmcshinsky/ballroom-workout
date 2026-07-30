@@ -20,12 +20,12 @@
   :root {
     --text-primary: #f5f5f5;
     --text-secondary: #aaaaaa;
-    --surface-0: #1a1a1a;   /* page */
-    --surface-1: #2a2a2a;   /* card */
-    --surface-2: #0f0f0f;   /* inset / darker */
+    --surface-0: #1a1a1a;
+    --surface-1: #2a2a2a;
+    --surface-2: #0f0f0f;
     --fill-accent: #00d4ff;
     --fill-accent-weak: rgba(0, 212, 255, 0.14);
-    --success: #00d4ff;      /* completed = bright accent */
+    --success: #00d4ff;
     --success-weak: rgba(0, 212, 255, 0.14);
     --warn: #ff9500;
     --danger: #ff4444;
@@ -47,7 +47,6 @@
   }
   h1, h2, h3, h4 { margin: 0; font-weight: 700; }
   button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-  img { display: block; max-width: 100%; }
   .ti { font-size: 20px; line-height: 1; }
   .muted { color: var(--text-secondary); }
 
@@ -71,6 +70,7 @@
   .view-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
 
   .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+  .card.tight { padding: 10px 12px; }
   .section-label {
     font-size: 13px; color: var(--fill-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
     border-bottom: 2px solid var(--fill-accent); padding-bottom: 8px; margin: 24px 0 14px;
@@ -92,39 +92,48 @@
   .block { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
   .block:first-child { border-top: none; margin-top: 0; padding-top: 0; }
   .block-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
-  .block-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-primary); }
+  .block-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-primary); }
   .block-time { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--fill-accent); background: var(--fill-accent-weak); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
   .ex-list { display: flex; flex-direction: column; gap: 12px; }
-  .exercise-card { background: var(--surface-1); }
-  .ex { display: flex; gap: 12px; align-items: flex-start; }
-  .ex-thumb { flex: 0 0 auto; width: 60px; height: 60px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; display: grid; place-items: center; }
-  .ex-thumb img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
-  .ex-thumb.noimg { color: var(--text-secondary); }
-  .ex-thumb.noimg .ti { font-size: 24px; }
-  .ex-info { flex: 1; min-width: 0; }
-  .ex-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-  .ex-name { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
-  .ex-reps { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--fill-accent); }
-  .exercise-equipment { font-size: 11px; color: var(--fill-accent); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; margin-top: 5px; display: flex; gap: 5px; align-items: flex-start; }
-  .exercise-equipment .ti { font-size: 13px; margin-top: 1px; flex: 0 0 auto; }
-  .ex-note { font-size: 12px; color: var(--text-secondary); margin-top: 5px; line-height: 1.5; }
 
-  /* ===== Logging inputs ===== */
-  .exercise-logging { display: flex; align-items: flex-end; gap: 10px; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--border); }
-  .log-inputs { display: flex; gap: 10px; flex: 1; }
-  .input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-  .input-group label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
-  .input-field {
-    width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--fill-accent);
-    padding: 9px 12px; border-radius: var(--radius); font-family: var(--mono); font-size: 15px; font-weight: 700;
-  }
-  .input-field:focus { border: 2px solid var(--fill-accent); outline: none; padding: 8px 11px; }
-  .ex-done {
-    flex: 0 0 auto; width: 44px; height: 40px; border-radius: var(--radius);
+  .ex { display: flex; gap: 12px; align-items: flex-start; }
+  .ex-thumb { flex: 0 0 auto; width: 52px; height: 52px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); display: grid; place-items: center; }
+  .ex-thumb.sm { width: 44px; height: 44px; }
+  .gsvg { width: 60%; height: 60%; color: var(--fill-accent); stroke: currentColor; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .ex-info { flex: 1; min-width: 0; }
+  .ex-head { display: flex; gap: 8px; align-items: center; }
+  .ex-name { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; cursor: pointer; }
+  .ex-target { margin-left: auto; font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--fill-accent); white-space: nowrap; }
+  .notetoggle { flex: 0 0 auto; color: var(--text-secondary); width: 26px; height: 26px; display: grid; place-items: center; }
+  .notetoggle .ti { font-size: 18px; }
+  .exercise-equipment { font-size: 11px; color: var(--fill-accent); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; margin-top: 5px; display: flex; gap: 5px; align-items: flex-start; }
+  .exercise-equipment .ti { font-size: 13px; margin-top: 1px; flex: 0 0 auto; }
+  .ex-note { font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+  .exercise-card .ex-note { display: none; }
+  .exercise-card.open .ex-note { display: block; }
+  .exercise-card.open .notetoggle { color: var(--fill-accent); }
+
+  /* ===== Per-set logging: pills + steppers ===== */
+  .logbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--border); }
+  .sets { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .setlbl { font-size: 10px; font-weight: 700; color: var(--text-secondary); letter-spacing: .5px; margin-right: 4px; white-space: nowrap; }
+  .setpill {
+    min-width: 38px; height: 38px; padding: 0 8px; border-radius: var(--radius);
     border: 1px solid var(--border); background: var(--surface-2); color: var(--text-secondary);
-    display: grid; place-items: center; font-size: 20px;
+    font-family: var(--mono); font-weight: 700; font-size: 15px; transition: transform .08s ease;
+    display: inline-flex; align-items: center; justify-content: center;
   }
-  .ex-done.on { background: var(--success); border-color: var(--success); color: #000; }
+  .setpill:active { transform: scale(.9); }
+  .setpill.on { background: var(--success); border-color: var(--success); color: #000; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface-2); }
+  .stepper .stlbl { font-size: 10px; font-weight: 700; color: var(--text-secondary); padding: 0 8px; letter-spacing: .5px; }
+  .stepper button { width: 40px; height: 40px; font-size: 22px; font-weight: 700; color: var(--fill-accent); background: var(--surface-1); border-left: 1px solid var(--border); }
+  .stepper button:first-of-type { border-left: none; border-right: 1px solid var(--border); }
+  .stepper button:active { background: var(--fill-accent); color: #000; }
+  .stepper .stval { min-width: 44px; text-align: center; font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--fill-accent); }
+
+  .today-summary { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--fill-accent); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .today-summary .ti { font-size: 16px; }
 
   /* ===== Streak banner ===== */
   .streak-banner { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
@@ -143,7 +152,7 @@
   .status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 5px 10px; border-radius: var(--radius); background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border); }
   .status-pill.done { background: var(--success); color: #000; border-color: var(--success); }
   .status-pill.rest { background: var(--fill-accent-weak); color: var(--fill-accent); border-color: var(--fill-accent); }
-  .complete-btn { width: 100%; padding: 15px; border-radius: var(--radius); border: 2px solid var(--border); background: var(--surface-1); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; transition: transform .08s ease; }
+  .complete-btn { width: 100%; padding: 15px; border-radius: var(--radius); border: 2px solid var(--border); background: var(--surface-1); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; transition: transform .08s ease; }
   .complete-btn:active { transform: scale(.98); }
   .complete-btn .box { width: 22px; height: 22px; border-radius: var(--radius); border: 2px solid var(--border); display: grid; place-items: center; color: transparent; font-size: 15px; }
   .complete-btn.done { background: var(--success); border-color: var(--success); color: #000; }
@@ -156,8 +165,8 @@
   .stat-row.three { grid-template-columns: repeat(3, 1fr); }
   .stat-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
   .stat-card.pad-sm { padding: 12px 8px; text-align: center; }
-  .stat-num, .stat-value { font-family: var(--mono); font-size: 26px; font-weight: 700; line-height: 1; color: var(--fill-accent); }
-  .stat-lbl, .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 6px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .stat-num { font-family: var(--mono); font-size: 26px; font-weight: 700; line-height: 1; color: var(--fill-accent); }
+  .stat-lbl { font-size: 11px; color: var(--text-secondary); margin-top: 6px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
 
   /* ===== Week strip / calendar ===== */
   .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
@@ -209,7 +218,7 @@
   .btn:active { background: var(--surface-2); }
   .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
 
-  /* ===== Equipment checklist (on screen) ===== */
+  /* ===== Equipment checklist ===== */
   .eq-sub { font-size: 12px; font-weight: 700; color: var(--fill-accent); text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 6px; }
   .eq-list { list-style: none; padding: 0; margin: 0; }
   .eq-list li { font-size: 13px; padding: 4px 0; display: flex; gap: 8px; align-items: center; }
@@ -246,7 +255,7 @@
   .opt .ot { font-weight: 700; text-transform: uppercase; letter-spacing: .5px; font-size: 14px; }
   .opt .os { font-size: 12px; color: var(--text-secondary); }
 
-  /* ===== Hidden print-only equipment checklist ===== */
+  /* ===== Print-only equipment checklist ===== */
   #equipment-checklist { display: none; }
   @media print {
     header.app-bar, nav.tabbar, .toast, .modal-back { display: none !important; }
@@ -281,7 +290,7 @@
     </details>
 
     <div id="libraryBody"></div>
-    <p class="foot-note">Exercise images from exrx.net · cached for offline after first view.</p>
+    <p class="foot-note">Illustrations render offline — no external images.</p>
   </section>
 
   <!-- ============ TODAY ============ -->
@@ -386,27 +395,22 @@
   <button class="tab" data-view="progress"><i class="ti ti-chart-bar"></i>Progress</button>
 </nav>
 
-<!-- Swap modal -->
 <div class="modal-back" id="swapBack"><div class="modal" id="swapModal"><div class="grab"></div></div></div>
-
-<!-- Hidden print-only equipment checklist -->
 <div id="equipment-checklist"></div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA
-   Local-only data. Habit tracking, calendar, per-exercise logging.
+   Local-only data. Habit tracking, calendar, per-set tap logging.
    ===================================================================== */
-const APP_VERSION = '4.0.0';
+const APP_VERSION = '5.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Complete workout plan data ---------- */
 const workoutPlan = {
   currentPhase: 1,
   startDate: "2026-07-30",
-
   schedule: { 0: "rest", 1: "full30", 2: "quick15", 3: "full30", 4: "quick15", 5: "full30", 6: "quick15" },
 
   equipmentNeeded: {
@@ -424,13 +428,13 @@ const workoutPlan = {
       title: "FULL 30 MIN", dayType: "MON/WED/FRI",
       blocks: [
         { title: "AEROBIC BASE", time: "0:00-0:15", duration: 15, exercises: [
-          { name: "Rowing machine, bike, or incline treadmill", reps: "15 minutes", equipment: ["Rowing machine", "Stationary bike", "Incline treadmill"], intensity: "Conversational pace", image: "https://www.exrx.net/WebImages/Exercises/Cardio/RowingMachine.png", formNote: "Primary adaptation window—ballroom endurance lives here", loggable: false } ] },
+          { name: "Rowing machine, bike, or incline treadmill", reps: "15 minutes", equipment: ["Rowing machine", "Stationary bike", "Incline treadmill"], intensity: "Conversational pace", formNote: "Primary adaptation window—ballroom endurance lives here", loggable: false } ] },
         { title: "STABILIZER CIRCUIT (3 rounds, 45 sec rest between)", time: "0:15-0:26", duration: 11, exercises: [
-          { name: "Band pull-aparts", reps: "20", equipment: ["Resistance band (medium)"], image: "https://www.exrx.net/WebImages/Exercises/Back/DBRearDeltFly.png", formNote: "Hold band at chest, arms extended. Pull apart by spreading arms wide. Squeeze shoulder blades.", loggable: true, fields: ["reps"] },
-          { name: "Single-leg Romanian deadlifts (light)", reps: "12/leg", equipment: ["Light dumbbell", "Bodyweight"], image: "https://www.exrx.net/WebImages/Exercises/Hamstrings/DBSingleLegDeadlift.png", formNote: "Stand on one leg, slight knee bend. Hip hinge forward, opposite leg extends for balance.", loggable: true, fields: ["weight", "reps"] },
-          { name: "Dead bugs", reps: "15", equipment: ["Floor/mat"], image: "https://www.exrx.net/WebImages/Exercises/Abs/DBDeadBug.png", formNote: "Lie on back, arms extended up, knees bent 90°. Extend opposite arm and leg.", loggable: true, fields: ["reps"] },
-          { name: "Pallof press (cable or band)", reps: "12/side", equipment: ["Cable machine", "Resistance band"], image: "https://www.exrx.net/WebImages/Exercises/Obliques/CBPallofPress.png", formNote: "Stand perpendicular to cable. Hold at chest, core braced. Press away, resist rotation.", loggable: true, fields: ["weight", "reps"] },
-          { name: "Glute bridges", reps: "20", equipment: ["Floor/mat", "Dumbbell (optional)"], image: "https://www.exrx.net/WebImages/Exercises/Glutes/BWGlutesBridge.png", formNote: "Lie on back, knees bent, feet flat. Drive through heels, lift hips to straight line. Squeeze glutes.", loggable: true, fields: ["weight", "reps"] } ] },
+          { name: "Band pull-aparts", reps: "20", equipment: ["Resistance band (medium)"], formNote: "Hold band at chest, arms extended. Pull apart by spreading arms wide. Squeeze shoulder blades.", loggable: true, fields: ["reps"] },
+          { name: "Single-leg Romanian deadlifts (light)", reps: "12/leg", equipment: ["Light dumbbell", "Bodyweight"], formNote: "Stand on one leg, slight knee bend. Hip hinge forward, opposite leg extends for balance.", loggable: true, fields: ["weight", "reps"] },
+          { name: "Dead bugs", reps: "15", equipment: ["Floor/mat"], formNote: "Lie on back, arms extended up, knees bent 90°. Extend opposite arm and leg.", loggable: true, fields: ["reps"] },
+          { name: "Pallof press (cable or band)", reps: "12/side", equipment: ["Cable machine", "Resistance band"], formNote: "Stand perpendicular to cable. Hold at chest, core braced. Press away, resist rotation.", loggable: true, fields: ["weight", "reps"] },
+          { name: "Glute bridges", reps: "20", equipment: ["Floor/mat", "Dumbbell (optional)"], formNote: "Lie on back, knees bent, feet flat. Drive through heels, lift hips to straight line. Squeeze glutes.", loggable: true, fields: ["weight", "reps"] } ] },
         { title: "COOL-DOWN MOBILITY", time: "0:26-0:30", duration: 4, exercises: [
           { name: "Cat-cow stretch", equipment: ["Floor/mat"], loggable: false },
           { name: "90/90 hip stretch", equipment: ["Floor/mat"], loggable: false },
@@ -441,10 +445,10 @@ const workoutPlan = {
       title: "QUICK 15 MIN", dayType: "TUE/THU/SAT",
       blocks: [
         { title: "STABILIZER CIRCUIT (2 rounds, 45 sec rest between)", time: "0:00-0:10", duration: 10, exercises: [
-          { name: "Band pull-aparts", reps: "20", equipment: ["Resistance band (medium)"], image: "https://www.exrx.net/WebImages/Exercises/Back/DBRearDeltFly.png", loggable: true, fields: ["reps"] },
-          { name: "Dead bugs", reps: "15", equipment: ["Floor/mat"], image: "https://www.exrx.net/WebImages/Exercises/Abs/DBDeadBug.png", loggable: true, fields: ["reps"] },
-          { name: "Pallof press", reps: "12/side", equipment: ["Cable machine", "Resistance band"], image: "https://www.exrx.net/WebImages/Exercises/Obliques/CBPallofPress.png", loggable: true, fields: ["weight", "reps"] },
-          { name: "Glute bridges", reps: "20", equipment: ["Floor/mat"], image: "https://www.exrx.net/WebImages/Exercises/Glutes/BWGlutesBridge.png", loggable: true, fields: ["weight", "reps"] } ] },
+          { name: "Band pull-aparts", reps: "20", equipment: ["Resistance band (medium)"], loggable: true, fields: ["reps"] },
+          { name: "Dead bugs", reps: "15", equipment: ["Floor/mat"], loggable: true, fields: ["reps"] },
+          { name: "Pallof press", reps: "12/side", equipment: ["Cable machine", "Resistance band"], loggable: true, fields: ["weight", "reps"] },
+          { name: "Glute bridges", reps: "20", equipment: ["Floor/mat"], loggable: true, fields: ["weight", "reps"] } ] },
         { title: "MOBILITY", time: "0:10-0:15", duration: 5, exercises: [
           { name: "90/90 hip stretch", equipment: ["Floor/mat"], loggable: false },
           { name: "Couch stretch", equipment: ["Floor/mat"], loggable: false },
@@ -460,14 +464,14 @@ const workoutPlan = {
       title: "FULL 30 MIN (INTENSITY)", dayType: "MON/WED/FRI",
       blocks: [
         { title: "AEROBIC INTERVALS", time: "0:00-0:12", duration: 12, exercises: [
-          { name: "Rowing, bike, or treadmill", reps: "2 min easy, 1 min hard (8/10), repeat 4x", equipment: ["Rowing machine", "Stationary bike", "Treadmill"], image: "https://www.exrx.net/WebImages/Exercises/Cardio/RowingMachine.png", formNote: "Trains recovery ability between dances", loggable: false } ] },
+          { name: "Rowing, bike, or treadmill", reps: "2 min easy, 1 min hard (8/10), repeat 4x", equipment: ["Rowing machine", "Stationary bike", "Treadmill"], formNote: "Trains recovery ability between dances", loggable: false } ] },
         { title: "DENSITY STABILIZER CIRCUIT (4 rounds, 30 sec rest between)", time: "0:12-0:27", duration: 15, exercises: [
-          { name: "Band pull-aparts", reps: "25", equipment: ["Resistance band (heavy)"], image: "https://www.exrx.net/WebImages/Exercises/Back/DBRearDeltFly.png", loggable: true, fields: ["reps"] },
-          { name: "Landmine rotations", reps: "12/side", equipment: ["Barbell with landmine"], image: "https://www.exrx.net/WebImages/Exercises/Obliques/BBLandmineRotation.png", formNote: "Hold end of barbell at chest. Rotate torso side to side. Feet planted, movement from core.", loggable: true, fields: ["weight", "reps"] },
-          { name: "Banded lateral walks", reps: "15 steps/direction", equipment: ["Loop band (heavy)"], image: "https://www.exrx.net/WebImages/Exercises/Glutes/CBGluteLateralWalk.png", formNote: "Slight squat position, step sideways maintaining band tension.", loggable: true, fields: ["reps"] },
-          { name: "Offset loaded carries", reps: "40 sec/side", equipment: ["Dumbbell"], image: "https://www.exrx.net/WebImages/Exercises/Core/DBUnilateralFarmersWalk.png", formNote: "Hold one dumbbell in one hand at side. Walk forward, upright posture. Core braced.", loggable: true, fields: ["weight"] },
-          { name: "Copenhagen side-lying adduction", reps: "15", equipment: ["Floor/mat", "Light dumbbell (optional)"], image: "https://www.exrx.net/WebImages/Exercises/Adductors/BWSideLyingLegAdduction.png", formNote: "Lie on side, bottom leg straight, top leg bent on top. Press top leg down.", loggable: true, fields: ["weight", "reps"] },
-          { name: "Glute bridge marches", reps: "20", equipment: ["Floor/mat"], image: "https://www.exrx.net/WebImages/Exercises/Glutes/DBGlutesBridgeMarch.png", formNote: "Bridge position at top, alternate lifting one foot. Maintain glute engagement.", loggable: true, fields: ["reps"] } ] },
+          { name: "Band pull-aparts", reps: "25", equipment: ["Resistance band (heavy)"], loggable: true, fields: ["reps"] },
+          { name: "Landmine rotations", reps: "12/side", equipment: ["Barbell with landmine"], formNote: "Hold end of barbell at chest. Rotate torso side to side. Feet planted, movement from core.", loggable: true, fields: ["weight", "reps"] },
+          { name: "Banded lateral walks", reps: "15 steps/direction", equipment: ["Loop band (heavy)"], formNote: "Slight squat position, step sideways maintaining band tension.", loggable: true, fields: ["reps"] },
+          { name: "Offset loaded carries", reps: "40 sec/side", equipment: ["Dumbbell"], formNote: "Hold one dumbbell in one hand at side. Walk forward, upright posture. Core braced.", loggable: true, fields: ["weight"] },
+          { name: "Copenhagen side-lying adduction", reps: "15", equipment: ["Floor/mat", "Light dumbbell (optional)"], formNote: "Lie on side, bottom leg straight, top leg bent on top. Press top leg down.", loggable: true, fields: ["weight", "reps"] },
+          { name: "Glute bridge marches", reps: "20", equipment: ["Floor/mat"], formNote: "Bridge position at top, alternate lifting one foot. Maintain glute engagement.", loggable: true, fields: ["reps"] } ] },
         { title: "COOL-DOWN MOBILITY", time: "0:27-0:30", duration: 3, exercises: [
           { name: "Cat-cow, stretching", equipment: ["Floor/mat"], loggable: false } ] }
       ]
@@ -476,12 +480,12 @@ const workoutPlan = {
       title: "20 MIN CATALYST", dayType: "TUE/THU/SAT",
       blocks: [
         { title: "LIGHT CARDIO", time: "0:00-0:08", duration: 8, exercises: [
-          { name: "Rowing or bike", reps: "8 minutes", equipment: ["Rowing machine", "Stationary bike"], image: "https://www.exrx.net/WebImages/Exercises/Cardio/RowingMachine.png", formNote: "Easy pace", loggable: false } ] },
+          { name: "Rowing or bike", reps: "8 minutes", equipment: ["Rowing machine", "Stationary bike"], formNote: "Easy pace", loggable: false } ] },
         { title: "STABILIZER CIRCUIT (3 rounds)", time: "0:08-0:20", duration: 12, exercises: [
-          { name: "Band pull-aparts", reps: "20", equipment: ["Resistance band (medium)"], image: "https://www.exrx.net/WebImages/Exercises/Back/DBRearDeltFly.png", loggable: true, fields: ["reps"] },
-          { name: "Dead bugs", reps: "15", equipment: ["Floor/mat"], image: "https://www.exrx.net/WebImages/Exercises/Abs/DBDeadBug.png", loggable: true, fields: ["reps"] },
-          { name: "Pallof press", reps: "12/side", equipment: ["Cable machine", "Resistance band"], image: "https://www.exrx.net/WebImages/Exercises/Obliques/CBPallofPress.png", loggable: true, fields: ["weight", "reps"] },
-          { name: "Glute bridges", reps: "20", equipment: ["Floor/mat"], image: "https://www.exrx.net/WebImages/Exercises/Glutes/BWGlutesBridge.png", loggable: true, fields: ["weight", "reps"] } ] },
+          { name: "Band pull-aparts", reps: "20", equipment: ["Resistance band (medium)"], loggable: true, fields: ["reps"] },
+          { name: "Dead bugs", reps: "15", equipment: ["Floor/mat"], loggable: true, fields: ["reps"] },
+          { name: "Pallof press", reps: "12/side", equipment: ["Cable machine", "Resistance band"], loggable: true, fields: ["weight", "reps"] },
+          { name: "Glute bridges", reps: "20", equipment: ["Floor/mat"], loggable: true, fields: ["weight", "reps"] } ] },
         { title: "MOBILITY", time: "0:20-0:23", duration: 3, exercises: [
           { name: "Stretching", equipment: ["Floor/mat"], loggable: false } ] }
       ]
@@ -517,6 +521,31 @@ const workoutPlan = {
   }
 };
 
+/* ---------- Exercise glyphs (inline SVG, always render offline) ---------- */
+const GLYPHS = {
+  cardio: '<path d="M4 24h8l3-9 5 18 3-9h8"/>',
+  band: '<circle cx="9" cy="24" r="3" style="fill:currentColor;stroke:none"/><circle cx="39" cy="24" r="3" style="fill:currentColor;stroke:none"/><path d="M13 24c6-7 16-7 22 0"/><path d="M13 24c6 7 16 7 22 0"/>',
+  dumbbell: '<path d="M7 18v12M12 14v20M36 14v20M41 18v12"/><path d="M12 24h24"/>',
+  core: '<circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="4" style="fill:currentColor;stroke:none"/>',
+  glute: '<path d="M5 34c5 0 6-15 19-15s14 15 19 15"/><path d="M5 34v4M43 34v4"/>',
+  landmine: '<path d="M7 40l23-23"/><circle cx="7" cy="40" r="3" style="fill:currentColor;stroke:none"/><path d="M30 17l6 6M34 13l6 6"/>',
+  carry: '<path d="M18 20a6 6 0 0112 0"/><rect x="13" y="20" width="22" height="20" rx="4"/>',
+  mobility: '<circle cx="15" cy="11" r="4" style="fill:currentColor;stroke:none"/><path d="M15 16v9l13 5M15 25l-3 12M28 30l6 8"/>'
+};
+function kindFor(n) {
+  n = n.toLowerCase();
+  if (/row|bike|treadmill|cardio/.test(n)) return 'cardio';
+  if (/pull-apart|lateral walk/.test(n)) return 'band';
+  if (/deadlift/.test(n)) return 'dumbbell';
+  if (/landmine/.test(n)) return 'landmine';
+  if (/carr/.test(n)) return 'carry';
+  if (/glute/.test(n)) return 'glute';
+  if (/dead bug|pallof|copenhagen|adduction/.test(n)) return 'core';
+  if (/stretch|mobility|cat-cow|hip|spinal|couch|t-spine|recovery|rest|walk/.test(n)) return 'mobility';
+  return 'core';
+}
+function glyphSVG(kind) { return `<svg viewBox="0 0 48 48" class="gsvg" aria-hidden="true">${GLYPHS[kind] || GLYPHS.core}</svg>`; }
+
 /* ---------- Day-completion store ---------- */
 const STORE_KEY = 'ballroom.tracker.v2';
 function loadStore() { try { const r = localStorage.getItem(STORE_KEY); return r ? JSON.parse(r) : { completions: {} }; } catch (e) { return { completions: {} }; } }
@@ -532,41 +561,33 @@ function parseISO(s) { const [y, m, dd] = s.split('-').map(Number); return new D
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 function sameDay(a, b) { return startOfDay(a).getTime() === startOfDay(b).getTime(); }
 
-/* ---------- Per-exercise logging store ---------- */
-function logExercise(date, exerciseName, data) {
+/* ---------- Per-exercise logging store (per-set) ---------- */
+function getLog(date, name) { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); return (logs[date] && logs[date][name]) || null; }
+function saveLog(date, name, obj) {
   const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
   if (!logs[date]) logs[date] = {};
-  const prev = logs[date][exerciseName] || {};
-  const pick = (v, p) => v !== undefined ? (v === '' ? null : v) : (p != null ? p : null);
-  logs[date][exerciseName] = {
-    weight: pick(data.weight, prev.weight),
-    reps: pick(data.reps, prev.reps),
-    completed: data.completed !== undefined ? data.completed : (prev.completed || false),
-    timestamp: Date.now()
-  };
+  logs[date][name] = Object.assign({}, logs[date][name], obj, { timestamp: Date.now() });
   localStorage.setItem('exerciseLogs', JSON.stringify(logs));
 }
-function getExerciseLog(date, exerciseName) {
-  const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
-  return (logs[date] && logs[date][exerciseName]) || { weight: null, reps: null, completed: false };
+function normalizeSets(arr, count, target) {
+  const out = [];
+  for (let i = 0; i < count; i++) { const s = (arr && arr[i]) || {}; out.push({ reps: s.reps != null ? s.reps : target, done: !!s.done }); }
+  return out;
 }
 function getAverageWeight(exerciseName, days = 28) {
   const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
   const weights = [];
   for (let i = 0; i < days; i++) {
-    const dateKey = getDateKey(addDays(new Date(), -i));
-    const log = logs[dateKey] && logs[dateKey][exerciseName];
-    if (log && log.weight) { const w = parseFloat(log.weight); if (!isNaN(w)) weights.push(w); }
+    const log = logs[getDateKey(addDays(new Date(), -i))];
+    const ex = log && log[exerciseName];
+    if (ex && ex.weight) { const w = parseFloat(ex.weight); if (!isNaN(w) && w > 0) weights.push(w); }
   }
   if (!weights.length) return 0;
   return (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1);
 }
 
 /* ---------- Phase & workout resolution ---------- */
-function phaseForDate(d) {
-  const diffDays = Math.floor((startOfDay(d) - startOfDay(parseISO(workoutPlan.startDate))) / 86400000);
-  return Math.floor(Math.max(0, diffDays) / 7) >= 6 ? 2 : 1;
-}
+function phaseForDate(d) { const diff = Math.floor((startOfDay(d) - startOfDay(parseISO(workoutPlan.startDate))) / 86400000); return Math.floor(Math.max(0, diff) / 7) >= 6 ? 2 : 1; }
 function currentPhase() { return phaseForDate(new Date()); }
 function slotForDate(d) { return workoutPlan.schedule[d.getDay()]; }
 function isScheduledWorkout(d) { return slotForDate(d) !== 'rest'; }
@@ -581,7 +602,7 @@ function workoutForDate(d, phase) {
 function isCompleted(d) { return !!store.completions[isoDate(d)]; }
 function setCompleted(d, val) { const k = isoDate(d); if (val) store.completions[k] = true; else delete store.completions[k]; saveStore(); }
 
-/* ---------- Streaks (rest days don't break the chain) ---------- */
+/* ---------- Streaks ---------- */
 function earliestDate() {
   let start = parseISO(workoutPlan.startDate);
   const keys = Object.keys(store.completions);
@@ -589,8 +610,7 @@ function earliestDate() {
   return startOfDay(start);
 }
 function computeStreaks() {
-  const today0 = startOfDay(new Date());
-  const start = earliestDate();
+  const today0 = startOfDay(new Date()), start = earliestDate();
   let best = 0, run = 0;
   for (let d = new Date(start); startOfDay(d) <= today0; d = addDays(d, 1)) {
     if (!isScheduledWorkout(d)) continue;
@@ -604,44 +624,65 @@ function computeStreaks() {
 
 /* ---------- Render helpers ---------- */
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-function imgFail(img) { const p = img.parentNode; p.classList.add('noimg'); p.innerHTML = '<i class="ti ti-stretching" aria-hidden="true"></i>'; }
-function thumbHTML(ex) {
-  return ex.image ? `<div class="ex-thumb"><img loading="lazy" alt="" src="${esc(ex.image)}" onerror="imgFail(this)"></div>`
-                  : `<div class="ex-thumb noimg"><i class="ti ti-stretching" aria-hidden="true"></i></div>`;
-}
+function roundsFromTitle(t) { if (!t) return 1; const m = String(t).match(/(\d+(?:\.\d+)?)\s*rounds?/i); return m ? Math.max(1, Math.round(parseFloat(m[1]))) : 1; }
+function targetReps(ex) { if (!ex.reps) return 10; const m = String(ex.reps).match(/\d+/); return m ? parseInt(m[0], 10) : 10; }
 function equipHTML(ex) {
   return ex.equipment && ex.equipment.length
     ? `<div class="exercise-equipment"><i class="ti ti-barbell" aria-hidden="true"></i><span>${ex.equipment.map(esc).join(', ')}</span></div>` : '';
 }
+
+/* Library (reference) exercise — notes visible */
 function exerciseLibHTML(ex) {
-  const reps = ex.reps ? `<span class="ex-reps">${esc(ex.reps)}</span>` : '';
+  const reps = ex.reps ? `<span class="ex-target">${esc(ex.reps)}</span>` : '';
   const note = (ex.formNote || ex.intensity) ? `<div class="ex-note">${esc(ex.formNote || ex.intensity)}</div>` : '';
-  return `<div class="ex">${thumbHTML(ex)}<div class="ex-info"><div class="ex-head"><span class="ex-name">${esc(ex.name)}</span>${reps}</div>${equipHTML(ex)}${note}</div></div>`;
+  return `<div class="ex"><div class="ex-thumb">${glyphSVG(kindFor(ex.name))}</div><div class="ex-info"><div class="ex-head"><span class="ex-name">${esc(ex.name)}</span>${reps}</div>${equipHTML(ex)}${note}</div></div>`;
 }
-function exerciseTodayHTML(ex, dateKey) {
-  const reps = ex.reps ? `<span class="ex-reps">${esc(ex.reps)}</span>` : '';
-  const note = (ex.formNote || ex.intensity) ? `<div class="ex-note">${esc(ex.formNote || ex.intensity)}</div>` : '';
-  let logging = '';
-  if (ex.loggable) {
-    const log = getExerciseLog(dateKey, ex.name);
-    const fields = ex.fields || [];
-    let inputs = '';
-    if (fields.includes('weight')) inputs += `<div class="input-group"><label>Weight (lbs)</label><input class="input-field" type="number" inputmode="decimal" data-field="weight" value="${log.weight != null ? esc(log.weight) : ''}"></div>`;
-    if (fields.includes('reps')) inputs += `<div class="input-group"><label>Reps</label><input class="input-field" type="number" inputmode="numeric" data-field="reps" value="${log.reps != null ? esc(log.reps) : ''}"></div>`;
-    logging = `<div class="exercise-logging" data-ex="${encodeURIComponent(ex.name)}"><div class="log-inputs">${inputs}</div><button class="ex-done${log.completed ? ' on' : ''}" data-done aria-label="Mark set done"><i class="ti ti-check"></i></button></div>`;
+
+/* Today exercise — compact, tap-to-log, note collapsed */
+function stepperHTML(field, label, val) {
+  return `<div class="stepper" data-field="${field}"><span class="stlbl">${label}</span><button data-dec aria-label="decrease">−</button><span class="stval">${esc(String(val))}</span><button data-inc aria-label="increase">+</button></div>`;
+}
+function logbarHTML(ex, count, dateKey) {
+  const hasReps = (ex.fields || []).includes('reps');
+  const hasWeight = (ex.fields || []).includes('weight');
+  const log = getLog(dateKey, ex.name) || {};
+  const sets = normalizeSets(log.sets, count, targetReps(ex));
+  const doneN = sets.filter(s => s.done).length;
+  const weight = log.weight != null ? log.weight : 0;
+  const curReps = log.reps != null ? log.reps : targetReps(ex);
+  let pills = '';
+  for (let i = 0; i < count; i++) {
+    const s = sets[i];
+    const face = s.done ? (hasReps ? esc(String(s.reps)) : '<i class="ti ti-check"></i>') : (i + 1);
+    pills += `<button class="setpill${s.done ? ' on' : ''}" data-set="${i}">${face}</button>`;
   }
-  return `<div class="exercise-card"><div class="ex">${thumbHTML(ex)}<div class="ex-info"><div class="ex-head"><span class="ex-name">${esc(ex.name)}</span>${reps}</div>${equipHTML(ex)}${note}</div></div>${logging}</div>`;
+  const steppers = (hasReps ? stepperHTML('reps', 'REPS', curReps) : '') + (hasWeight ? stepperHTML('weight', 'LBS', weight) : '');
+  return `<div class="logbar" data-ex="${encodeURIComponent(ex.name)}" data-sets="${count}" data-reps="${hasReps ? 1 : 0}" data-weight="${hasWeight ? 1 : 0}" data-target="${targetReps(ex)}">
+      <div class="sets"><span class="setlbl">SETS ${doneN}/${count}</span>${pills}</div>
+      <div class="steppers">${steppers}</div></div>`;
+}
+function exerciseTodayHTML(ex, rounds, dateKey) {
+  const badge = ex.reps ? `<span class="ex-target">${esc(ex.reps)}</span>` : '';
+  const note = ex.formNote || ex.intensity;
+  const noteToggle = note ? `<button class="notetoggle" data-note aria-label="Show tip"><i class="ti ti-info-circle"></i></button>` : '';
+  const noteHTML = note ? `<div class="ex-note">${esc(note)}</div>` : '';
+  const log = ex.loggable ? logbarHTML(ex, Math.max(1, rounds), dateKey) : '';
+  return `<div class="exercise-card">
+      <div class="ex"><div class="ex-thumb sm">${glyphSVG(kindFor(ex.name))}</div>
+        <div class="ex-info"><div class="ex-head"><span class="ex-name" data-note>${esc(ex.name)}</span>${badge}${noteToggle}</div>${equipHTML(ex)}${noteHTML}</div></div>
+      ${log}</div>`;
 }
 function blockHTML(b, mode, dateKey) {
   const head = (b.title || b.time) ? `<div class="block-head">${b.title ? `<span class="block-title">${esc(b.title)}</span>` : ''}${b.time ? `<span class="block-time">${esc(b.time)}</span>` : ''}</div>` : '';
-  const items = b.exercises.map(ex => mode === 'today' ? exerciseTodayHTML(ex, dateKey) : exerciseLibHTML(ex)).join('');
+  const rounds = roundsFromTitle(b.title);
+  const items = b.exercises.map(ex => mode === 'today' ? exerciseTodayHTML(ex, rounds, dateKey) : exerciseLibHTML(ex)).join('');
   return `<div class="block">${head}<div class="ex-list">${items}</div></div>`;
 }
 function dayBodyHTML(w, mode, dateKey) { return w.blocks.map(b => blockHTML(b, mode, dateKey)).join(''); }
 
 /* ---------- Toast ---------- */
 let toastTimer;
-function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2000); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1600); }
 
 /* ---------- Equipment checklist ---------- */
 function renderEquipment() {
@@ -652,7 +693,6 @@ function renderEquipment() {
      <div class="eq-sub">Optional</div><ul class="eq-list">${li(eq.optional)}</ul>
      <button class="btn primary" id="printEquip" style="margin-top:12px"><i class="ti ti-printer"></i> Print equipment list</button>`;
   document.getElementById('printEquip').onclick = () => window.print();
-
   const pli = (arr) => arr.map(i => `<li>☐ ${esc(i)}</li>`).join('');
   document.getElementById('equipment-checklist').innerHTML =
     `<h1>BALLROOM WORKOUT — GYM EQUIPMENT CHECKLIST</h1><h3>REQUIRED:</h3><ul>${pli(eq.required)}</ul><h3>OPTIONAL:</h3><ul>${pli(eq.optional)}</ul>`;
@@ -678,13 +718,54 @@ function renderWorkouts() {
 
 /* ---------- Today view ---------- */
 let todayOverride = null;
+function updateTodaySummary(dateKey) {
+  let totalSets = 0, doneSets = 0, exN = 0;
+  document.querySelectorAll('#todayBody .logbar').forEach(lb => {
+    exN++;
+    const c = +lb.dataset.sets;
+    totalSets += c;
+    const log = getLog(dateKey, decodeURIComponent(lb.dataset.ex));
+    const sets = (log && log.sets) || [];
+    const done = sets.filter(s => s && s.done).length;
+    doneSets += done;
+    const sl = lb.querySelector('.setlbl'); if (sl) sl.textContent = `SETS ${done}/${c}`;
+  });
+  const el = document.getElementById('todaySummary');
+  if (el) el.innerHTML = exN ? `<i class="ti ti-checklist"></i> ${doneSets}/${totalSets} sets logged · ${exN} exercises` : '';
+}
+function wireToday(dateKey) {
+  document.querySelectorAll('#todayBody [data-note]').forEach(el => {
+    el.addEventListener('click', () => { const c = el.closest('.exercise-card'); if (c) c.classList.toggle('open'); });
+  });
+  document.querySelectorAll('#todayBody .logbar').forEach(lb => {
+    const name = decodeURIComponent(lb.dataset.ex);
+    const count = +lb.dataset.sets, target = +lb.dataset.target;
+    const hasReps = lb.dataset.reps === '1';
+    const state = () => { const l = getLog(dateKey, name) || {}; return { weight: l.weight != null ? l.weight : 0, reps: l.reps != null ? l.reps : target, sets: normalizeSets(l.sets, count, target) }; };
+    lb.querySelectorAll('.stepper').forEach(st => {
+      const field = st.dataset.field, valEl = st.querySelector('.stval'), step = field === 'weight' ? 5 : 1;
+      st.querySelector('[data-dec]').onclick = () => { const s = state(); const v = Math.max(0, (field === 'weight' ? s.weight : s.reps) - step); saveLog(dateKey, name, { [field]: v }); valEl.textContent = v; };
+      st.querySelector('[data-inc]').onclick = () => { const s = state(); const v = (field === 'weight' ? s.weight : s.reps) + step; saveLog(dateKey, name, { [field]: v }); valEl.textContent = v; };
+    });
+    lb.querySelectorAll('.setpill').forEach(p => {
+      const i = +p.dataset.set;
+      p.onclick = () => {
+        const s = state(), sets = s.sets;
+        sets[i].done = !sets[i].done;
+        if (sets[i].done && hasReps) sets[i].reps = s.reps;
+        saveLog(dateKey, name, { sets });
+        p.classList.toggle('on', sets[i].done);
+        p.innerHTML = sets[i].done ? (hasReps ? esc(String(sets[i].reps)) : '<i class="ti ti-check"></i>') : String(i + 1);
+        updateTodaySummary(dateKey);
+      };
+    });
+  });
+  updateTodaySummary(dateKey);
+}
 function renderToday() {
-  const now = new Date();
-  const dateKey = isoDate(now);
-  const phase = currentPhase();
+  const now = new Date(), dateKey = isoDate(now), phase = currentPhase();
   const { current, best } = computeStreaks();
-  const done = isCompleted(now);
-  const rest = !isScheduledWorkout(now);
+  const done = isCompleted(now), rest = !isScheduledWorkout(now);
 
   document.getElementById('streakBanner').innerHTML = `
     <div class="streak-flame ${current >= 3 ? 'hot' : ''}"><i class="ti ti-flame" aria-hidden="true"></i></div>
@@ -696,8 +777,7 @@ function renderToday() {
   const w = resolved.data, kind = resolved.kind;
   document.getElementById('todayMeta').textContent = `Phase ${phase} · ${w.title}` + (w.dayType ? ` · ${w.dayType}` : '');
 
-  const pill = document.getElementById('statusPill');
-  const body = document.getElementById('todayBody');
+  const pill = document.getElementById('statusPill'), body = document.getElementById('todayBody');
 
   if (kind === 'rest') {
     pill.className = 'status-pill rest';
@@ -714,30 +794,14 @@ function renderToday() {
   pill.className = 'status-pill' + (done ? ' done' : '');
   pill.innerHTML = done ? '<i class="ti ti-circle-check" aria-hidden="true"></i> Complete' : '<i class="ti ti-circle" aria-hidden="true"></i> Pending';
 
-  body.innerHTML = `<div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>
+  body.innerHTML = `<div class="today-summary" id="todaySummary"></div>
+     <div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>
      <button class="complete-btn${done ? ' done' : ''}" id="completeBtn"><span class="box"><i class="ti ti-check" aria-hidden="true"></i></span>${done ? "Workout complete" : "Mark workout complete"}</button>
      <div class="swap-note">Short on time? <a id="swapLink">Use a shorter version →</a></div>`;
 
   document.getElementById('completeBtn').onclick = () => toggleToday();
   document.getElementById('swapLink').onclick = openSwap;
-
-  // Wire per-exercise logging inputs
-  body.querySelectorAll('.exercise-logging').forEach(wrap => {
-    const name = decodeURIComponent(wrap.dataset.ex);
-    const inputs = wrap.querySelectorAll('input[data-field]');
-    const doneBtn = wrap.querySelector('[data-done]');
-    const gather = (completedOverride) => {
-      const data = {};
-      inputs.forEach(inp => { data[inp.dataset.field] = inp.value; });
-      if (completedOverride != null) data.completed = completedOverride;
-      logExercise(dateKey, name, data);
-    };
-    inputs.forEach(inp => inp.addEventListener('change', () => { gather(); toast('Logged'); }));
-    if (doneBtn) doneBtn.addEventListener('click', () => {
-      const nv = !getExerciseLog(dateKey, name).completed;
-      gather(nv); doneBtn.classList.toggle('on', nv); toast(nv ? 'Set done' : 'Set cleared');
-    });
-  });
+  wireToday(dateKey);
 }
 function streakMessage(cur, done, rest) {
   if (rest) return done ? 'Bonus session logged — nice!' : 'Recovery keeps the streak alive.';
@@ -746,8 +810,7 @@ function streakMessage(cur, done, rest) {
   return 'Finish today to extend your streak.';
 }
 function toggleToday() {
-  const now = new Date();
-  const willDo = !isCompleted(now);
+  const now = new Date(), willDo = !isCompleted(now);
   setCompleted(now, willDo);
   renderToday(); renderCalendar(); renderProgress();
   toast(willDo ? 'Workout logged' : 'Marked incomplete');
@@ -812,21 +875,16 @@ function renderCalendar() {
 document.getElementById('calPrev').onclick = () => { calView = new Date(calView.getFullYear(), calView.getMonth() - 1, 1); renderCalendar(); };
 document.getElementById('calNext').onclick = () => { calView = new Date(calView.getFullYear(), calView.getMonth() + 1, 1); renderCalendar(); };
 
-/* ---------- Performance metrics ---------- */
+/* ---------- Performance ---------- */
 function renderPerformance() {
-  const tracked = [
-    "Single-leg Romanian deadlifts (light)", "Pallof press (cable or band)", "Pallof press",
-    "Glute bridges", "Landmine rotations", "Offset loaded carries", "Copenhagen side-lying adduction"
-  ];
-  const seen = {};
-  let html = '';
+  const tracked = ["Single-leg Romanian deadlifts (light)", "Pallof press (cable or band)", "Pallof press", "Glute bridges", "Landmine rotations", "Offset loaded carries", "Copenhagen side-lying adduction"];
+  const seen = {}; let html = '';
   tracked.forEach(name => {
     if (seen[name]) return; seen[name] = 1;
     const avg = getAverageWeight(name, 28);
     if (avg > 0) html += `<div class="perf-row"><span class="perf-name">${esc(name)}</span><span class="perf-val">${avg} lbs</span></div>`;
   });
-  document.getElementById('perfBody').innerHTML = html ||
-    `<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px">Log weights on the Today tab to see 4-week averages here.</div>`;
+  document.getElementById('perfBody').innerHTML = html || `<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px">Log weights on the Today tab to see 4-week averages here.</div>`;
 }
 
 /* ---------- Progress view ---------- */
@@ -879,7 +937,7 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.da
 
 /* ---------- Data actions ---------- */
 document.getElementById('resetBtn').onclick = () => {
-  if (confirm('Reset ALL workout data on this device (including logged weights/reps)? This cannot be undone.')) {
+  if (confirm('Reset ALL workout data on this device (including logged sets/weights)? This cannot be undone.')) {
     store = { completions: {} }; saveStore(); localStorage.removeItem('exerciseLogs');
     renderToday(); renderCalendar(); renderProgress(); toast('All data cleared');
   }
