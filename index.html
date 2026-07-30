@@ -301,6 +301,13 @@
   .ex-row .er-presc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
   .ex-row .ti-chevron-right { color: var(--text-secondary); }
 
+  .mtag { margin-left: auto; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .mtag.POWER { background: var(--fill-accent); color: var(--on-accent); }
+  .mtag.CONDITIONING { background: var(--success); color: var(--on-success); }
+  .mtag.LIGHT { background: var(--surface-2); color: var(--text-secondary); }
+  .mtag.REST { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  details.master-day > summary .acc-chev { margin-left: 8px; }
+
   .machine-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; background: var(--surface-1); }
   .machine-card .mh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
   .machine-card .mb { font-size: 15px; font-weight: 700; }
@@ -357,17 +364,19 @@
     <div class="view-title">Workout Library</div>
     <div class="view-sub">Full plan plus 15–60 min options — tap any day to expand.</div>
 
-    <details class="acc" id="equipAcc">
+    <details class="acc" id="equipAcc" style="display:none">
       <summary><span class="acc-t"><i class="ti ti-tools" style="vertical-align:-3px"></i> Gym Equipment Checklist</span><i class="ti ti-chevron-down acc-chev"></i></summary>
       <div class="acc-body" id="equipBody"></div>
     </details>
 
     <div class="prog-switch" id="progSwitch">
-      <button class="prog active" data-prog="ballroom">Ballroom</button>
-      <button class="prog" data-prog="jump">Jump Attack</button>
+      <button class="prog active" data-prog="master">Master</button>
+      <button class="prog" data-prog="ballroom">Ballroom</button>
+      <button class="prog" data-prog="jump">Jump</button>
       <button class="prog" data-prog="machines">Machines</button>
     </div>
-    <div id="libraryBody"></div>
+    <div id="masterBody"></div>
+    <div id="libraryBody" style="display:none"></div>
     <div id="jumpBody" style="display:none"></div>
     <div id="machinesBody" style="display:none"></div>
     <p class="foot-note">Tap any exercise for demo photos, step-by-step instructions & muscles worked.</p>
@@ -484,7 +493,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '7.1.0';
+const APP_VERSION = '8.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -832,10 +841,44 @@ function renderMachines() {
   });
   document.getElementById('machinesBody').innerHTML = html;
 }
+function renderMaster() {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const ballroomRows = w => w.blocks.map(b => b.exercises.map(ex => exRowHTML(ex.name, ex.reps || '')).join('')).join('');
+  const legsRows = p => p.seqs.map(sq => `<div class="seq-note" style="margin:12px 0 6px">Sequence ${sq.n}</div>` + sq.ex.map(e => exRowHTML(e[0], e[1])).join('')).join('');
+  const tbRows = p => p.tb.map(e => exRowHTML(e[0], e[1])).join('');
+  let html = `<div class="card tight" style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+    <b style="color:var(--text-primary)">Master Plan · 12 weeks</b><br>
+    Blends <b style="color:var(--fill-accent)">Jump Attack</b> (explosive power) with your <b style="color:var(--fill-accent)">Ballroom</b> stability &amp; conditioning. Jump Attack owns the training days; ballroom fills its two recovery days, so hard and light days interleave. Phases line up: FIRE + Foundation → FORCE → FLIGHT + Competition Prep.<br><br>
+    <b style="color:var(--text-primary)">Weekly rhythm</b><br>Mon / Thu — Legs (power) · Tue / Fri — Total Body (power) · Wed — Ballroom 30 (active recovery) · Sat — Ballroom short (light) · Sun — rest + mobility.<br><br>
+    <b style="color:var(--text-primary)">Recovery weeks (4, 8, 12):</b> skip Jump Attack — ballroom + mobility only.</div>`;
+  JA.phases.forEach((p, idx) => {
+    const bp = idx === 0 ? workoutPlan.phase1 : workoutPlan.phase2;
+    const full = bp.full30, short = bp.quick15 || bp.catalyst20;
+    const bl = idx === 0 ? 'Ballroom Phase 1' : idx === 1 ? 'Ballroom Phase 1→2 (switch wk 7)' : 'Ballroom Phase 2';
+    const plan = [
+      ['POWER', 'Jump Attack · Legs', legsRows(p)],
+      ['POWER', 'Jump Attack · Total Body', tbRows(p)],
+      ['CONDITIONING', 'Ballroom · ' + full.title, ballroomRows(full)],
+      ['POWER', 'Jump Attack · Legs', legsRows(p)],
+      ['POWER', 'Jump Attack · Total Body', tbRows(p)],
+      ['LIGHT', 'Ballroom · ' + short.title, ballroomRows(short)],
+      ['REST', 'Rest + 10-min mobility', '']
+    ];
+    html += `<div class="phase-card"><div class="phase-head"><div class="pn">${esc(p.name)}</div><div class="pw">${esc(p.weeks)} · ${esc(bl)}</div></div><div class="phase-body">`;
+    plan.forEach((row, i) => {
+      const tag = row[0], label = row[1], body = row[2];
+      const tagText = tag === 'CONDITIONING' ? 'Cond.' : tag[0] + tag.slice(1).toLowerCase();
+      html += `<details class="acc master-day"><summary><span class="acc-t">${days[i]}</span><span class="acc-sub">· ${esc(label)}</span><span class="mtag ${tag}">${tagText}</span><i class="ti ti-chevron-down acc-chev"></i></summary><div class="acc-body">${body || '<div class="muted" style="font-size:13px">Full rest — light stretching only.</div>'}</div></details>`;
+    });
+    html += `</div></div>`;
+  });
+  document.getElementById('masterBody').innerHTML = html;
+}
 function wireProgSwitch() {
   document.querySelectorAll('#progSwitch .prog').forEach(b => b.onclick = () => {
     document.querySelectorAll('#progSwitch .prog').forEach(x => x.classList.toggle('active', x === b));
     const p = b.dataset.prog;
+    document.getElementById('masterBody').style.display = p === 'master' ? '' : 'none';
     document.getElementById('libraryBody').style.display = p === 'ballroom' ? '' : 'none';
     document.getElementById('equipAcc').style.display = p === 'ballroom' ? '' : 'none';
     document.getElementById('jumpBody').style.display = p === 'jump' ? '' : 'none';
@@ -1260,6 +1303,7 @@ renderEquipment();
 renderWorkouts();
 renderJumpAttack();
 renderMachines();
+renderMaster();
 wireProgSwitch();
 wireExDetail();
 renderToday();
