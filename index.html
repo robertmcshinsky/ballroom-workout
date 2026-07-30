@@ -308,6 +308,84 @@
   .mtag.REST { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
   details.master-day > summary .acc-chev { margin-left: 8px; }
 
+  /* ===== v9: Duolingo-style gamification palette + components ===== */
+  :root, :root[data-theme="light"], :root[data-theme="dark"] {
+    --fill-accent: #58cc02; --fill-accent-weak: rgba(88,204,2,0.15); --on-accent: #ffffff;
+    --success: #58cc02; --success-weak: rgba(88,204,2,0.15); --on-success: #ffffff;
+    --xp: #ffc800; --streak: #ff9600; --shadow-dark: rgba(0,0,0,0.18);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --fill-accent: #58cc02; --fill-accent-weak: rgba(88,204,2,0.2); --on-accent: #ffffff;
+    --success: #58cc02; --success-weak: rgba(88,204,2,0.2); --on-success: #ffffff;
+    --shadow-dark: rgba(0,0,0,0.5);
+  } }
+
+  /* Chunky 3D buttons */
+  .complete-btn, .btn.primary, .install-banner button, .dur.active {
+    box-shadow: 0 4px 0 var(--shadow-dark); transition: transform .06s ease, box-shadow .06s ease;
+  }
+  .complete-btn:active, .btn.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--shadow-dark); }
+  .complete-btn { border-radius: 16px; text-transform: none; font-size: 16px; }
+  .complete-btn.done { animation: none; }
+
+  /* Gamebar */
+  .gamebar { background: var(--surface-1); border: 1px solid var(--border); border-radius: 18px; padding: 14px; margin-bottom: 14px; box-shadow: 0 3px 0 var(--shadow-dark); }
+  .gb-top { display: flex; align-items: center; gap: 12px; }
+  .gb-mascot { width: 60px; height: 60px; flex: 0 0 auto; }
+  .gb-mascot svg { width: 100%; height: 100%; }
+  .gb-bubble { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; position: relative; }
+  .gb-bubble::before { content: ''; position: absolute; left: -7px; top: 18px; border: 7px solid transparent; border-right-color: var(--surface-2); }
+  .gb-stats { display: flex; gap: 10px; margin-top: 12px; }
+  .gb-chip { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--surface-2); border-radius: 12px; padding: 8px 10px; }
+  .gb-chip .ti { font-size: 20px; }
+  .gb-chip.streak .ti { color: var(--streak); }
+  .gb-chip.xp .ti { color: var(--xp); }
+  .gb-chip .n { font-family: var(--mono); font-weight: 700; font-size: 16px; }
+  .gb-chip .l { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+  .gb-ring { width: 56px; height: 56px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; position: relative; }
+  .gb-ring::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--surface-1); }
+  .gb-ring .rc { position: relative; font-family: var(--mono); font-weight: 700; font-size: 13px; }
+  .lvl-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .lvl-badge { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: var(--fill-accent); color: var(--on-accent); display: grid; place-items: center; font-weight: 800; font-size: 15px; box-shadow: 0 2px 0 var(--shadow-dark); }
+  .xp-bar { flex: 1; height: 14px; border-radius: 999px; background: var(--surface-2); overflow: hidden; position: relative; }
+  .xp-fill { height: 100%; background: var(--xp); border-radius: 999px; transition: width .5s cubic-bezier(.2,.9,.3,1); }
+  .xp-txt { font-size: 11px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
+
+  /* Celebration overlay */
+  .celebrate { position: fixed; inset: 0; z-index: 80; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.55); overflow: hidden; }
+  .celebrate.show { display: flex; animation: fade .25s ease; }
+  .celebrate-card { background: var(--surface-1); border-radius: 22px; padding: 26px 22px 22px; width: 88%; max-width: 360px; text-align: center; position: relative; z-index: 2; animation: pop .4s cubic-bezier(.2,1.3,.4,1); }
+  @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .celebrate-card .cmascot { width: 96px; height: 96px; margin: 0 auto 6px; animation: bob 1s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+  .celebrate-card h2 { font-size: 22px; margin-bottom: 4px; }
+  .celebrate-card .csub { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+  .creward { display: flex; gap: 10px; margin-bottom: 18px; }
+  .creward div { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 12px; }
+  .creward .cn { font-family: var(--mono); font-weight: 800; font-size: 22px; }
+  .creward .xp .cn { color: var(--xp); }
+  .creward .streak .cn { color: var(--streak); }
+  .creward .cl { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+  .confetti { position: absolute; top: -12px; width: 10px; height: 14px; z-index: 1; opacity: .95; will-change: transform; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+  /* Achievements */
+  .badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .badge { text-align: center; }
+  .badge .bi { width: 100%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: var(--fill-accent-weak); color: var(--fill-accent); }
+  .badge.locked .bi { background: var(--surface-2); color: var(--text-secondary); opacity: .5; }
+  .badge .bl { font-size: 10px; font-weight: 600; margin-top: 5px; color: var(--text-secondary); line-height: 1.2; }
+
+  /* Reminder toggle */
+  .rem-row { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
+  .rem-row .rl { flex: 1; }
+  .rem-row .rl b { font-size: 14px; } .rem-row .rl span { display: block; font-size: 12px; color: var(--text-secondary); }
+  .switch { width: 50px; height: 30px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); position: relative; flex: 0 0 auto; transition: background .2s; }
+  .switch.on { background: var(--fill-accent); border-color: var(--fill-accent); }
+  .switch .knob { position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: left .2s; }
+  .switch.on .knob { left: 22px; }
+  .time-input { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-primary); border-radius: 10px; padding: 8px 10px; font-family: var(--mono); font-size: 15px; }
+
   .machine-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; background: var(--surface-1); }
   .machine-card .mh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
   .machine-card .mb { font-size: 15px; font-weight: 700; }
@@ -469,6 +547,12 @@
       <div class="stat-card pad-sm"><div class="stat-num" id="atPct">0%</div><div class="stat-lbl">All-time rate</div></div>
     </div>
 
+    <div class="section-label">Achievements</div>
+    <div class="badges" id="badgesBody"></div>
+
+    <div class="section-label">Reminders</div>
+    <div class="card" id="reminderBody"></div>
+
     <div class="section-label">Data</div>
     <div class="btn-row">
       <button class="btn" id="exportBtn"><i class="ti ti-download"></i> Export</button>
@@ -486,6 +570,7 @@
 </nav>
 
 <div class="modal-back" id="exBack"><div class="modal" id="exModal"></div></div>
+<div class="celebrate" id="celebrate"></div>
 <div id="equipment-checklist"></div>
 <div class="toast" id="toast"></div>
 
@@ -493,7 +578,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '8.0.0';
+const APP_VERSION = '9.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -874,6 +959,161 @@ function renderMaster() {
   });
   document.getElementById('masterBody').innerHTML = html;
 }
+
+/* ===== Master-plan-driven Today ===== */
+function programWeek() { let d = Math.floor((startOfDay(new Date()) - startOfDay(parseISO(workoutPlan.startDate))) / 86400000); let w = Math.floor(Math.max(0, d) / 7) + 1; return ((w - 1) % 12) + 1; }
+function programPhaseIdx() { const w = programWeek(); return w <= 4 ? 0 : w <= 8 ? 1 : 2; }
+function jaLoggable(name) { const n = name.toLowerCase(); if (/stretch|hydrant|walkout|combo|mobility|balance|rest|rowing|bike|treadmill|cardio|walk/.test(n)) return null; return /deadlift|dead lift|squat|lunge|press|curl|carr|landmine|calf raise|overhead|clean/.test(n) ? ['weight', 'reps'] : ['reps']; }
+function jaEx(name, presc) { const f = jaLoggable(name); return { name, reps: presc, loggable: !!f, fields: f || undefined }; }
+function masterDay(date) {
+  const dow = date.getDay(), pi = programPhaseIdx(), jp = JA.phases[pi], bp = pi === 0 ? workoutPlan.phase1 : workoutPlan.phase2;
+  const legs = () => ({ title: jp.name + ' · Legs', dayType: 'Legs', blocks: jp.seqs.map(sq => ({ title: 'Sequence ' + sq.n + ' · 3 rounds', exercises: sq.ex.map(e => jaEx(e[0], e[1])) })) });
+  const tb = () => ({ title: jp.name + ' · Total Body', dayType: 'Total Body', blocks: [{ title: 'Circuit · 3 rounds', exercises: jp.tb.map(e => jaEx(e[0], e[1])) }] });
+  switch (dow) {
+    case 1: case 4: return { kind: 'legs', tag: 'Legs', focus: 'Explosive legs — Jump Attack', data: legs() };
+    case 2: case 5: return { kind: 'tb', tag: 'Total Body', focus: 'Total-body power — Jump Attack', data: tb() };
+    case 3: return { kind: 'ball', tag: 'Ballroom', focus: 'Stability & cardio — active recovery', data: bp.full30 };
+    case 6: return { kind: 'ball', tag: 'Ballroom', focus: 'Light stability + mobility', data: bp.quick15 || bp.catalyst20 };
+    default: return { kind: 'rest', tag: 'Rest', focus: 'Recover & stretch', data: bp.rest };
+  }
+}
+
+/* ===== Gamification ===== */
+function allSetsDone() { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); let n = 0; for (const d in logs) for (const e in logs[d]) { const s = logs[d][e].sets; if (Array.isArray(s)) n += s.filter(x => x && x.done).length; } return n; }
+function xpTotal() { return Object.keys(store.completions).length * 50 + allSetsDone() * 2; }
+function levelInfo() { const xp = xpTotal(); return { xp, lvl: Math.floor(xp / 100) + 1, into: xp % 100 }; }
+function mascotSVG() {
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="50" cy="92" rx="26" ry="5" fill="rgba(0,0,0,.14)"/>
+    <ellipse cx="37" cy="86" rx="10" ry="7" fill="#46a302"/><ellipse cx="63" cy="86" rx="10" ry="7" fill="#46a302"/>
+    <rect x="20" y="18" width="60" height="66" rx="27" fill="#58cc02"/>
+    <ellipse cx="50" cy="58" rx="20" ry="21" fill="#7ee23e"/>
+    <rect x="17" y="30" width="66" height="11" rx="5" fill="#ff5b5b"/>
+    <circle cx="40" cy="52" r="9" fill="#fff"/><circle cx="60" cy="52" r="9" fill="#fff"/>
+    <circle cx="42" cy="53" r="4.5" fill="#163300"/><circle cx="62" cy="53" r="4.5" fill="#163300"/>
+    <circle cx="31" cy="63" r="4" fill="#ff9db0" opacity=".75"/><circle cx="69" cy="63" r="4" fill="#ff9db0" opacity=".75"/>
+    <path d="M40 66 Q50 75 60 66" stroke="#163300" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+function todayMascotMsg(kind, done) {
+  if (kind === 'rest') return done ? "Bonus session logged — love the hustle! 💪" : "Rest day. Recover well and I'll see you tomorrow!";
+  if (done) return "Crushed it! Come back tomorrow to keep your streak going. 🔥";
+  const lines = ["Let's move — your future self says thanks!", "Time to train. You've got this! 💪", "Every rep counts. Let's go!", "Show up today, shine on the floor."];
+  return lines[new Date().getDate() % lines.length];
+}
+function gamebarHTML(pct, msg) {
+  const { lvl, into } = levelInfo(), { current } = computeStreaks();
+  return `<div class="gb-top">
+      <div class="gb-mascot">${mascotSVG()}</div>
+      <div class="gb-bubble">${esc(msg)}</div>
+      <div class="gb-ring" style="background:conic-gradient(var(--success) ${Math.round(pct * 3.6)}deg, var(--surface-2) 0)"><span class="rc">${pct}%</span></div>
+    </div>
+    <div class="lvl-row"><div class="lvl-badge">${lvl}</div><div class="xp-bar"><div class="xp-fill" style="width:${into}%"></div></div><span class="xp-txt">${into}/100 XP</span></div>
+    <div class="gb-stats">
+      <div class="gb-chip streak"><i class="ti ti-flame"></i><div><div class="n">${current}</div><div class="l">Day streak</div></div></div>
+      <div class="gb-chip xp"><i class="ti ti-bolt"></i><div><div class="n">${xpTotal()}</div><div class="l">Total XP</div></div></div>
+    </div>`;
+}
+function spawnConfetti(container) {
+  const colors = ['#58cc02', '#ffc800', '#ff9600', '#1cb0f6', '#ff86d0'];
+  for (let i = 0; i < 44; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.round(Math.random() * 100) + '%';
+    c.style.top = '-20px';
+    c.style.background = colors[i % colors.length];
+    c.style.animation = `fall ${(1.6 + Math.random() * 1.4).toFixed(2)}s linear ${(Math.random() * .5).toFixed(2)}s forwards`;
+    c.style.transform = `rotate(${Math.round(Math.random() * 360)}deg)`;
+    container.appendChild(c);
+  }
+}
+function celebrate() {
+  const { current } = computeStreaks();
+  const el = document.getElementById('celebrate');
+  el.innerHTML = `<div class="celebrate-card">
+      <div class="cmascot">${mascotSVG()}</div>
+      <h2>Workout complete!</h2>
+      <div class="csub">Nice work — that's in the books.</div>
+      <div class="creward">
+        <div class="xp"><div class="cn">+50</div><div class="cl">XP earned</div></div>
+        <div class="streak"><div class="cn">${current} 🔥</div><div class="cl">Day streak</div></div>
+      </div>
+      <button class="btn primary" id="celebClose">Continue</button>
+    </div>`;
+  spawnConfetti(el);
+  el.classList.add('show');
+  document.getElementById('celebClose').onclick = () => { el.classList.remove('show'); el.innerHTML = ''; };
+}
+
+/* ===== Achievements ===== */
+const ACHV = [
+  { icon: 'ti-shoe', name: 'First Steps', test: s => s.workouts >= 1 },
+  { icon: 'ti-flame', name: 'On Fire', test: s => s.best >= 3 },
+  { icon: 'ti-calendar-heart', name: 'Week Warrior', test: s => s.best >= 7 },
+  { icon: 'ti-barbell', name: 'Committed', test: s => s.workouts >= 10 },
+  { icon: 'ti-trophy', name: 'Machine', test: s => s.workouts >= 30 },
+  { icon: 'ti-star-filled', name: 'Level 5', test: s => s.lvl >= 5 },
+  { icon: 'ti-bolt', name: '100 Sets', test: s => s.sets >= 100 },
+  { icon: 'ti-mountain', name: 'Phase Up', test: s => s.week >= 5 }
+];
+function renderBadges() {
+  const s = { workouts: Object.keys(store.completions).length, best: computeStreaks().best, lvl: levelInfo().lvl, sets: allSetsDone(), week: programWeek() };
+  document.getElementById('badgesBody').innerHTML = ACHV.map(a => {
+    const on = a.test(s);
+    return `<div class="badge ${on ? '' : 'locked'}"><div class="bi"><i class="ti ${a.icon}"></i></div><div class="bl">${a.name}</div></div>`;
+  }).join('');
+}
+
+/* ===== Reminders ===== */
+function loadRem() { return store.reminder || { enabled: false, time: '18:00' }; }
+let remTimer;
+function fireReminder() {
+  if (isCompleted(new Date())) return;
+  const opts = { body: "Time to train! Keep your streak alive. 🔥", icon: iconDataUrl(192), tag: 'daily-workout' };
+  try { navigator.serviceWorker.ready.then(reg => reg.showNotification('Ballroom Workout', opts)).catch(() => {}); }
+  catch (e) { try { new Notification('Ballroom Workout', opts); } catch (_) {} }
+}
+function scheduleReminder() {
+  clearTimeout(remTimer);
+  const r = loadRem();
+  if (!r.enabled || (typeof Notification === 'undefined') || Notification.permission !== 'granted') return;
+  const [h, m] = r.time.split(':').map(Number);
+  const now = new Date(), next = new Date(); next.setHours(h, m, 0, 0); if (next <= now) next.setDate(next.getDate() + 1);
+  const ms = next - now;
+  remTimer = setTimeout(() => { fireReminder(); scheduleReminder(); }, Math.min(ms, 2147483647));
+  try {
+    if (typeof TimestampTrigger !== 'undefined') {
+      navigator.serviceWorker.ready.then(reg => reg.showNotification('Ballroom Workout', {
+        tag: 'daily-workout', body: "Time to train! Keep your streak alive. 🔥", icon: iconDataUrl(192),
+        showTrigger: new TimestampTrigger(next.getTime())
+      }).catch(() => {}));
+    }
+  } catch (e) {}
+}
+function renderReminders() {
+  const r = loadRem();
+  const supported = typeof Notification !== 'undefined';
+  document.getElementById('reminderBody').innerHTML = supported ? `
+    <div class="rem-row"><div class="rl"><b>Daily workout reminder</b><span>A nudge to train each day.</span></div><div class="switch ${r.enabled ? 'on' : ''}" id="remSwitch"><div class="knob"></div></div></div>
+    <div class="rem-row" id="remTimeRow" style="${r.enabled ? '' : 'display:none'}"><div class="rl"><b>Reminder time</b></div><input type="time" class="time-input" id="remTime" value="${esc(r.time)}"></div>
+    <div class="muted" style="font-size:11px;margin-top:6px">Works best on Android/desktop. On iPhone, reminders fire only while the app is open.</div>` :
+    `<div class="muted" style="font-size:13px">Notifications aren't supported on this browser.</div>`;
+  if (!supported) return;
+  const sw = document.getElementById('remSwitch');
+  sw.onclick = async () => {
+    const r = loadRem();
+    if (!r.enabled) {
+      let p = Notification.permission;
+      if (p !== 'granted') { try { p = await Notification.requestPermission(); } catch (e) {} }
+      if (p !== 'granted') { toast('Allow notifications in your browser to enable'); return; }
+      r.enabled = true;
+    } else r.enabled = false;
+    store.reminder = r; saveStore(); renderReminders(); scheduleReminder(); toast(r.enabled ? 'Reminders on 🔔' : 'Reminders off');
+  };
+  const t = document.getElementById('remTime');
+  if (t) t.onchange = () => { const r = loadRem(); r.time = t.value; store.reminder = r; saveStore(); scheduleReminder(); toast('Reminder set for ' + t.value); };
+}
+
 function wireProgSwitch() {
   document.querySelectorAll('#progSwitch .prog').forEach(b => b.onclick = () => {
     document.querySelectorAll('#progSwitch .prog').forEach(x => x.classList.toggle('active', x === b));
@@ -1091,26 +1331,33 @@ function wireToday(dateKey) {
   });
   updateTodaySummary(dateKey);
 }
+let todayOverride = null;
+function todayProgressPct(session, dateKey, done) {
+  if (done) return 100;
+  if (session.kind === 'rest') return 0;
+  let tot = 0, dn = 0;
+  session.data.blocks.forEach(b => b.exercises.forEach(ex => { if (ex.loggable) { tot++; const l = getLog(dateKey, ex.name); if (l && (l.sets || []).some(s => s && s.done)) dn++; } }));
+  return tot ? Math.round(dn / tot * 100) : 0;
+}
 function renderToday() {
-  const now = new Date(), dateKey = isoDate(now), phase = currentPhase();
-  const { current, best } = computeStreaks();
+  const now = new Date(), dateKey = isoDate(now);
   const done = isCompleted(now);
-  const resolved = sessionByKey(todaySessionKey);
-  const w = resolved.data, isRest = resolved.kind === 'rest';
+  const session = todayOverride || masterDay(now);
+  const w = session.data, isRest = session.kind === 'rest';
+  const pct = todayProgressPct(session, dateKey, done);
 
-  document.getElementById('streakBanner').innerHTML = `
-    <div class="streak-flame ${current >= 3 ? 'hot' : ''}"><i class="ti ti-flame" aria-hidden="true"></i></div>
-    <div class="streak-main"><div class="big">${current} day${current === 1 ? '' : 's'} streak</div><div class="sub">${streakMessage(current, done, isRest)}</div></div>
-    <div class="streak-best">Best<b>${best}</b></div>`;
+  const gb = document.getElementById('streakBanner');
+  gb.className = 'gamebar';
+  gb.innerHTML = gamebarHTML(pct, todayMascotMsg(session.kind, done));
 
   document.getElementById('todayDate').textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('todayMeta').textContent = `Phase ${phase} · ${w.title}` + (w.dayType ? ` · ${w.dayType}` : '');
+  document.getElementById('todayMeta').textContent = `Week ${programWeek()} · ${session.focus}`;
 
   const pill = document.getElementById('statusPill');
   pill.className = 'status-pill' + (isRest ? ' rest' : (done ? ' done' : ''));
-  pill.innerHTML = isRest ? '<i class="ti ti-moon"></i> Rest' : (done ? '<i class="ti ti-circle-check"></i> Complete' : '<i class="ti ti-circle"></i> Pending');
+  pill.innerHTML = isRest ? '<i class="ti ti-moon"></i> Rest' : (done ? '<i class="ti ti-circle-check"></i> Done' : '<i class="ti ti-circle"></i> To do');
 
-  renderDurRow();
+  document.getElementById('durRow').innerHTML = '';
   const body = document.getElementById('todayBody');
 
   if (isRest) {
@@ -1118,16 +1365,18 @@ function renderToday() {
       <i class="ti ti-bed" style="font-size:34px;color:var(--fill-accent)"></i>
       <div style="font-size:16px;font-weight:700;margin-top:10px">Rest day — recover & stretch</div>
       <div class="muted" style="font-size:14px;margin-top:4px">${esc(w.blocks[0].exercises[0].name)}</div>
-      <button class="btn" id="restLogBtn" style="margin-top:16px">${done ? '<i class="ti ti-circle-check"></i> Bonus session logged' : '<i class="ti ti-plus"></i> Log a bonus session'}</button>
-      <div class="muted" style="font-size:12px;margin-top:12px">Want to train anyway? Pick a length above.</div></div>`;
+      <button class="btn" id="restLogBtn" style="margin-top:16px">${done ? '<i class="ti ti-circle-check"></i> Bonus session logged' : '<i class="ti ti-plus"></i> Log a bonus session'}</button></div>`;
     document.getElementById('restLogBtn').onclick = () => toggleToday();
     return;
   }
 
   body.innerHTML = `<div class="today-summary" id="todaySummary"></div>
      <div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>
-     <button class="complete-btn${done ? ' done' : ''}" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>${done ? "Workout complete" : "Mark workout complete"}</button>`;
+     <button class="complete-btn${done ? ' done' : ''}" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>${done ? "Workout complete!" : "I did it — mark complete"}</button>
+     <div class="swap-note">${todayOverride ? '<a id="backFull">↩ Back to full plan</a>' : 'Short on time? <a id="swapShort">Do a 15-min minimal instead →</a>'}</div>`;
   document.getElementById('completeBtn').onclick = () => toggleToday();
+  const sl = document.getElementById('swapShort'); if (sl) sl.onclick = () => { todayOverride = { kind: 'ball', focus: 'Short on time — 15-min minimal', data: workoutPlan.emergencyVersions.minimal15 }; renderToday(); };
+  const bf = document.getElementById('backFull'); if (bf) bf.onclick = () => { todayOverride = null; renderToday(); };
   wireToday(dateKey);
 }
 function streakMessage(cur, done, rest) {
@@ -1140,7 +1389,7 @@ function toggleToday() {
   const now = new Date(), willDo = !isCompleted(now);
   setCompleted(now, willDo);
   renderToday(); renderCalendar(); renderProgress();
-  toast(willDo ? 'Workout logged' : 'Marked incomplete');
+  if (willDo) celebrate(); else toast('Marked incomplete');
 }
 
 /* ---------- Calendar ---------- */
@@ -1213,6 +1462,7 @@ function renderProgress() {
   document.getElementById('mPctBar').style.width = mPct + '%';
 
   renderPerformance();
+  renderBadges();
 
   const { best } = computeStreaks();
   let atExp = 0, atDone = 0;
@@ -1309,6 +1559,16 @@ wireExDetail();
 renderToday();
 renderCalendar();
 renderProgress();
+renderReminders();
+scheduleReminder();
+// In-app nudge: if reminders on, not done today, and past reminder time
+(function nudge() {
+  const r = loadRem();
+  if (!r.enabled || isCompleted(new Date())) return;
+  const [h, m] = r.time.split(':').map(Number);
+  const now = new Date();
+  if (now.getHours() > h || (now.getHours() === h && now.getMinutes() >= m)) setTimeout(() => toast("Time to train — keep your streak alive! 🔥"), 800);
+})();
 </script>
 </body>
 </html>

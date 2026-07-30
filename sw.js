@@ -29,6 +29,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Focus or open the app when a reminder notification is tapped.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ('focus' in c) return c.focus(); }
+      if (self.clients.openWindow) return self.clients.openWindow(BASE);
+    })
+  );
+});
+
 // Network-first for the page (so updates appear), cache-first for everything else.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
