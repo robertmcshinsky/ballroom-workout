@@ -1,0 +1,146 @@
+========================================================================
+  BALLROOM FIT — STEP-BY-STEP SETUP
+  Get your workout app live on the internet and onto your phone.
+  Follow these in order. No coding needed. Takes about 10 minutes.
+========================================================================
+
+Two things happen here:
+  A) Things you do on the GitHub WEBSITE (in your browser)
+  B) Things you type in a TERMINAL on your computer
+
+If you have never used a terminal: on Windows open "Git Bash" or
+"PowerShell"; on Mac open "Terminal". Type each line, press Enter.
+
+The files in this folder:
+  index.html ......... the whole app (the ONLY file you edit to change workouts)
+  sw.js .............. makes the app work offline (do not delete)
+  README.md .......... project description
+  .gitignore ......... housekeeping
+  deploy.sh .......... optional shortcut for future updates
+  .github/ ........... optional auto-deploy (safe to ignore or delete)
+
+
+------------------------------------------------------------------------
+STEP 1 — CREATE THE REPOSITORY (on the GitHub website)
+------------------------------------------------------------------------
+1. Go to https://github.com  and sign in (create a free account if needed).
+2. Click the "+" in the top-right corner  ->  "New repository".
+3. Repository name:   ballroom-workout
+4. Choose "Private" (only you can see the code; the live app can still
+   be made public in Step 4 — or keep the whole thing private if you
+   prefer, see the note at the bottom).
+5. Do NOT check "Add a README" (you already have one).
+6. Click "Create repository".
+7. Leave that page open — you will need the two commands it shows you.
+
+
+------------------------------------------------------------------------
+STEP 2 — PUT YOUR FILES ON GITHUB (in the terminal)
+------------------------------------------------------------------------
+In your terminal, go into this folder first. Example:
+
+    cd path/to/Workouts
+
+Then run these lines one at a time:
+
+    git init
+    git add .
+    git commit -m "First version of Ballroom Fit"
+    git branch -M main
+
+Now connect it to the repo you made in Step 1. Copy the line GitHub
+showed you (it looks like the one below, with YOUR username), then push:
+
+    git remote add origin https://github.com/USERNAME/ballroom-workout.git
+    git push -u origin main
+
+If it asks you to log in, follow the prompts. When it finishes, refresh
+the GitHub page — your files should now be listed there.
+
+(Replace USERNAME everywhere with your real GitHub username.)
+
+
+------------------------------------------------------------------------
+STEP 3 — TURN ON GITHUB PAGES (on the GitHub website)
+------------------------------------------------------------------------
+1. On your repo page, click "Settings" (top menu).
+2. In the left sidebar, click "Pages".
+3. Under "Source", choose "Deploy from a branch".
+4. Branch: choose "main".   Folder: choose "/ (root)".
+5. Click "Save".
+6. Wait 1-2 minutes, then refresh. A green box appears with your link:
+
+       https://USERNAME.github.io/ballroom-workout/
+
+   That is your live app. Bookmark it!
+
+   (Optional auto-deploy instead: if you'd rather use the included
+    GitHub Action, set Source to "GitHub Actions" here instead of a
+    branch. Both work — pick one.)
+
+
+------------------------------------------------------------------------
+STEP 4 — OPEN IT ON YOUR PHONE AND INSTALL IT
+------------------------------------------------------------------------
+iPhone / iPad:
+  1. Open the link in SAFARI (must be Safari, not Chrome).
+  2. Tap the Share button (square with an up-arrow).
+  3. Scroll down, tap "Add to Home Screen", then "Add".
+
+Android:
+  1. Open the link in CHROME.
+  2. Tap the menu (three dots, top-right).
+  3. Tap "Install app" (or "Add to Home screen").
+
+The app icon now sits on your home screen and opens full-screen.
+It works even with no internet after the first load.
+
+
+------------------------------------------------------------------------
+STEP 5 — CHANGING YOUR WORKOUTS LATER
+------------------------------------------------------------------------
+Only "index.html" needs editing. Open it, find the part that starts
+with:   const LIBRARY = [   ...and edit the workout names, minutes, and
+exercises. Save the file. Then publish the change:
+
+  Easy way (run the included script once to make it executable):
+      chmod +x deploy.sh
+      ./deploy.sh "Added new samba routine"
+
+  Or the manual way:
+      git add .
+      git commit -m "Added new samba routine"
+      git push origin main
+
+Your live site updates automatically 1-2 minutes after each push.
+
+
+------------------------------------------------------------------------
+STEP 6 — SEEING YOUR UPDATE HISTORY (optional)
+------------------------------------------------------------------------
+To see every change you have ever pushed:
+
+      git log --oneline
+
+The version number also shows at the bottom of the Progress screen in
+the app (currently 1.0.0). Bump it in index.html (APP_VERSION) when you
+make a big change so you can tell versions apart on your phone.
+
+
+------------------------------------------------------------------------
+NOTES
+------------------------------------------------------------------------
+* Your workout HISTORY lives only on your phone. GitHub stores the app,
+  never your data. Reinstalling or clearing browser data erases history.
+* Changes take 1-2 minutes to appear live — be patient after a push.
+* Private repo + public site: with GitHub Pages on a private repo, the
+  PUBLISHED site can still be public (default). If you need the site
+  itself private too, that requires a paid GitHub plan; otherwise anyone
+  with the exact link could load the app (they still cannot see YOUR
+  workout history — that never leaves your phone).
+* Custom domain (optional): in Settings -> Pages, type your domain in
+  "Custom domain" and follow GitHub's DNS instructions. The app
+  auto-detects the new path, so nothing in the code needs to change.
+
+Done! Enjoy training for your competition. 💃🕺
+========================================================================

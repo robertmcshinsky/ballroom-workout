@@ -1,0 +1,8 @@
+# Nothing to build — this is a static site. These are just in case.
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+.env
