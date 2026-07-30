@@ -376,6 +376,23 @@
   .p-main:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--shadow-dark); }
   .p-main.rest { background: var(--fill-accent); color: var(--on-accent); }
   .p-rest-note { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ===== Camera share ===== */
+  .share-cam { position: fixed; inset: 0; z-index: 95; background: #000; display: none; flex-direction: column; }
+  .share-cam.open { display: flex; }
+  .sh-cam { flex: 1; position: relative; overflow: hidden; background: #000; }
+  .sh-cam video { width: 100%; height: 100%; object-fit: cover; }
+  .sh-x { position: absolute; top: calc(12px + var(--safe-t)); right: 14px; background: rgba(0,0,0,.45); color: #fff; z-index: 2; }
+  .sh-ov { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: calc(16px + var(--safe-t)) 18px 20px; }
+  .sh-brand { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; background: var(--fill-accent); color: #fff; font-weight: 800; letter-spacing: 1px; padding: 7px 13px; border-radius: 10px; }
+  .sh-stats { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
+  .sh-stats > div:first-child b { font-size: 24px; } .sh-stats > div:first-child span { font-size: 13px; opacity: .85; margin-left: 8px; }
+  .sh-row { display: flex; gap: 18px; margin-top: 8px; font-weight: 700; font-size: 17px; }
+  .sh-row .ti { color: var(--streak); vertical-align: -2px; }
+  .sh-foot { display: flex; align-items: center; justify-content: space-around; padding: 16px 30px calc(22px + var(--safe-b)); background: #000; }
+  .sh-shot { width: 74px; height: 74px; border-radius: 50%; background: #fff; border: 5px solid rgba(255,255,255,.35); }
+  .sh-shot:active { transform: scale(.92); }
+  .sh-card { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.16); color: #fff; display: grid; place-items: center; font-size: 22px; }
   .gb-bubble { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; position: relative; }
   .gb-bubble::before { content: ''; position: absolute; left: -7px; top: 18px; border: 7px solid transparent; border-right-color: var(--surface-2); }
   .gb-stats { display: flex; gap: 10px; margin-top: 12px; }
@@ -522,6 +539,7 @@
     </div>
 
     <div class="dur-row" id="durRow"></div>
+    <div class="dur-row" id="modeRow"></div>
     <div id="todayBody"></div>
   </section>
 
@@ -619,6 +637,7 @@
 <div class="modal-back" id="exBack"><div class="modal" id="exModal"></div></div>
 <div class="celebrate" id="celebrate"></div>
 <div class="player" id="player"></div>
+<div class="share-cam" id="shareCam"></div>
 <div id="equipment-checklist"></div>
 <div class="toast" id="toast"></div>
 
@@ -626,7 +645,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '11.1.0';
+const APP_VERSION = '12.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1056,6 +1075,44 @@ function todaySetCounts(session, dateKey) {
   return { done, total };
 }
 
+/* ===== Equipment mode (gym / minimal / bodyweight) ===== */
+let todayMode = 'full';
+function numReps(ex, dflt) { const m = (ex.reps || '').match(/\d+/); return m ? m[0] : dflt; }
+function subExercise(ex, mode) {
+  if (mode === 'full' || !ex.loggable) return ex;
+  const n = ex.name.toLowerCase();
+  if (mode === 'none') {
+    if (/dead ?lift|romanian|stiff/.test(n)) return { name: 'Single-leg hip hinge', reps: '12/leg', loggable: true, fields: ['reps'], formNote: 'Balance on one leg, hinge at the hips with a flat back, then stand tall.' };
+    if (/squat|leg press|hack/.test(n)) return { name: 'Bodyweight squat', reps: numReps(ex, '20'), loggable: true, fields: ['reps'], formNote: 'Sit your hips back to parallel, drive through the heels.' };
+    if (/bulgarian/.test(n)) return { name: 'Bulgarian split squat', reps: '12/leg', loggable: true, fields: ['reps'], formNote: 'Rear foot on a chair, lower straight down, press up through the front heel.' };
+    if (/lunge/.test(n)) return { name: 'Reverse lunge', reps: '12/leg', loggable: true, fields: ['reps'] };
+    if (/calf/.test(n)) return { name: 'Bodyweight calf raise', reps: numReps(ex, '25'), loggable: true, fields: ['reps'] };
+    if (/pallof|landmine|russian/.test(n)) return { name: 'Bird dog', reps: '10/side', loggable: true, fields: ['reps'], formNote: 'Extend opposite arm and leg, keep hips level and core braced.' };
+    if (/pec fly|chest fly|bench press|clap push|push-?up|tricep push/.test(n)) return { name: 'Push-ups', reps: numReps(ex, '12'), loggable: true, fields: ['reps'] };
+    if (/pike|handstand|overhead|shoulder press|military|clean/.test(n)) return { name: 'Pike push-ups', reps: '10', loggable: true, fields: ['reps'], formNote: 'Hips high, lower the crown of your head toward the floor, press up.' };
+    if (/rear delt|reverse fly|row|pull-?up|chin-?up|band pull/.test(n)) return { name: 'Superman hold', reps: '15', loggable: true, fields: ['reps'] };
+    if (/curl|bicep|preacher|triceps? (ext|pushdown)/.test(n)) return { name: 'Chair/bench dips', reps: '12', loggable: true, fields: ['reps'] };
+    if (/lateral walk/.test(n)) return { name: 'Lateral bounds', reps: '20', loggable: true, fields: ['reps'] };
+    if (/carr/.test(n)) return { name: 'Slow march', reps: '40 sec/side', loggable: false };
+    return { name: ex.name, reps: ex.reps, loggable: ex.loggable, fields: ['reps'], formNote: ex.formNote };
+  }
+  if (/barbell|leg press|hack|cable|machine|landmine/.test(n)) {
+    if (/squat|leg press|hack/.test(n)) return { name: 'Goblet squat', reps: numReps(ex, '15'), loggable: true, fields: ['weight', 'reps'] };
+    if (/dead ?lift|romanian|stiff/.test(n)) return { name: 'DB Romanian deadlift', reps: ex.reps, loggable: true, fields: ['weight', 'reps'] };
+    if (/landmine|russian/.test(n)) return { name: 'DB Russian twist', reps: ex.reps, loggable: true, fields: ['weight', 'reps'] };
+    if (/pallof|cable cross|pec fly/.test(n)) return { name: 'Band Pallof press', reps: ex.reps, loggable: true, fields: ['reps'] };
+    if (/overhead|shoulder press|military|clean/.test(n)) return { name: 'DB shoulder press', reps: '10', loggable: true, fields: ['weight', 'reps'] };
+    if (/preacher|curl|bicep/.test(n)) return { name: 'DB curl', reps: ex.reps, loggable: true, fields: ['weight', 'reps'] };
+    if (/triceps? (ext|pushdown)/.test(n)) return { name: 'DB overhead triceps', reps: '12', loggable: true, fields: ['weight', 'reps'] };
+    return ex;
+  }
+  return ex;
+}
+function applyMode(session, mode) {
+  if (!session || mode === 'full') return session;
+  return Object.assign({}, session, { data: Object.assign({}, session.data, { blocks: session.data.blocks.map(b => Object.assign({}, b, { exercises: b.exercises.map(ex => subExercise(ex, mode)) })) }) });
+}
+
 /* ===== Gamification ===== */
 function allSetsDone() { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); let n = 0; for (const d in logs) for (const e in logs[d]) { const s = logs[d][e].sets; if (Array.isArray(s)) n += s.filter(x => x && x.done).length; } return n; }
 function xpTotal() { let xp = 0; for (const k in store.completions) { const v = store.completions[k]; const pct = v === true ? 100 : (v.pct || 100); xp += Math.round(50 * pct / 100); } return xp + allSetsDone() * 2; }
@@ -1118,11 +1175,13 @@ function celebrate(status, pct) {
         <div class="xp"><div class="cn">+${xp}</div><div class="cl">XP earned</div></div>
         <div class="streak"><div class="cn">${current}</div><div class="cl">Day streak</div></div>
       </div>
+      ${full ? '<button class="btn" id="celebShare" style="margin-bottom:10px"><i class="ti ti-camera"></i> Share your win</button>' : ''}
       <button class="btn primary" id="celebClose">Continue</button>
     </div>`;
   spawnConfetti(el);
   el.classList.add('show');
   document.getElementById('celebClose').onclick = () => { el.classList.remove('show'); el.innerHTML = ''; };
+  const cs = document.getElementById('celebShare'); if (cs) cs.onclick = () => { el.classList.remove('show'); el.innerHTML = ''; openShare(); };
 }
 
 /* ===== Coaching + Personal Bests ===== */
@@ -1143,6 +1202,13 @@ function renderMaxes() {
 
 /* ===== Full-screen guided player ===== */
 let P = null;
+let wakeLock = null;
+async function requestWake() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+function releaseWake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && P) requestWake(); });
+function fmtElapsed() { return (P && P.startMs) ? fmt(Math.floor((Date.now() - P.startMs) / 1000)) : '0:00'; }
+function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+function sessionVolume(session, dateKey) { let v = 0; session.data.blocks.forEach(b => b.exercises.forEach(ex => { const l = getLog(dateKey, ex.name); if (l && Array.isArray(l.sets)) { const reps = l.sets.filter(s => s && s.done).reduce((a, s) => a + (+s.reps || 0), 0); v += (+l.weight || 0) * reps; } })); return v; }
 function stepSeconds(ex) { const r = (ex.reps || '').toLowerCase(); let m = r.match(/(\d+)\s*min/); if (m) return +m[1] * 60; m = r.match(/(\d+)\s*sec/); if (m) return +m[1]; m = r.match(/(\d+)\s*s(\b|\/)/); if (m) return +m[1]; return 0; }
 function restSecondsFor(block) { const m = (block && block.title || '').match(/(\d+)\s*sec\s*rest/i); return m ? +m[1] : 45; }
 function pImgFail(img) { const k = img.dataset.kind; img.outerHTML = `<div class="p-img glyphbig">${glyphSVG(k)}</div>`; }
@@ -1162,12 +1228,29 @@ function openPlayer() {
   const now = new Date();
   const base = masterDay(now);
   if (base.kind === 'rest') { toast('Rest day — nothing to start'); return; }
-  const session = scaledSession(base, todayMinutes);
-  P = { session, dateKey: isoDate(now), steps: buildSteps(session), i: 0, phase: 'work', t: null, left: 0, total: 0, running: false };
+  const session = applyMode(scaledSession(base, todayMinutes), todayMode);
+  P = { session, dateKey: isoDate(now), steps: buildSteps(session), i: 0, phase: 'work', t: null, left: 0, total: 0, running: false, startMs: Date.now(), elapsed: null };
   document.getElementById('player').classList.add('open');
+  P.elapsed = setInterval(() => { const e = document.getElementById('pElapsed'); if (e) e.textContent = fmtElapsed(); }, 1000);
+  requestWake();
   playerRender();
 }
-function closePlayer() { stopTick(); document.getElementById('player').classList.remove('open'); P = null; }
+function closePlayer() {
+  stopTick();
+  if (P && P.elapsed) clearInterval(P.elapsed);
+  releaseWake();
+  let msg = null;
+  if (P) {
+    const now = new Date();
+    if (!isCompleted(now)) {
+      const c = todaySetCounts(P.session, P.dateKey);
+      if (c.done > 0) { const pct = Math.min(99, Math.round(c.done / c.total * 100)); setCompleted(now, true, { pct, min: todayMinutes }); msg = 'Partial saved — ' + pct + '%'; }
+    }
+  }
+  document.getElementById('player').classList.remove('open'); P = null;
+  renderToday(); renderCalendar(); renderProgress();
+  if (msg) toast(msg);
+}
 function stopTick() { if (P && P.t) { clearInterval(P.t); P.t = null; } if (P) P.running = false; }
 function fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function setClock() { const el = document.getElementById('pClock'); if (!el || !P) return; el.textContent = fmt(P.left); const ring = document.getElementById('pRing'); if (ring) { const pct = P.total ? (1 - P.left / P.total) * 360 : 0; ring.style.background = `conic-gradient(${P.phase === 'rest' ? 'var(--streak)' : 'var(--fill-accent)'} ${pct}deg, var(--surface-2) 0)`; } }
@@ -1192,11 +1275,15 @@ function goPrev() { stopTick(); if (P.i > 0) { P.i--; playerRender(); } }
 function logCurrentSet() {
   const s = P.steps[P.i];
   const w = document.getElementById('pWeightVal'), rp = document.getElementById('pRepsVal');
+  const wt = w ? +w.textContent : 0;
+  const prevBest = bestWeight(s.ex.name);
   const log = getLog(P.dateKey, s.ex.name) || {};
   const sets = normalizeSets(log.sets, s.rounds, targetReps(s.ex));
   sets[s.round - 1] = { reps: rp ? +rp.textContent : targetReps(s.ex), done: true };
-  const data = { sets }; if (w) data.weight = +w.textContent;
+  const data = { sets }; if (w) data.weight = wt;
   saveLog(P.dateKey, s.ex.name, data);
+  try { navigator.vibrate && navigator.vibrate(30); } catch (e) {}
+  if (wt > 0 && wt > prevBest) toast('New personal best — ' + wt + ' lb 💪');
   playerRestScreen(s.rest || 45);
 }
 function playerRestScreen(sec) {
@@ -1210,16 +1297,19 @@ function playerRestScreen(sec) {
   wireTimer();
   document.getElementById('pSkip').onclick = () => { P.phase = 'work'; goNext(); };
 }
-function header(pct) { return `<div class="p-head"><button class="p-close" id="pClose"><i class="ti ti-x"></i></button><div class="p-prog"><div class="f" style="width:${pct}%"></div></div><div class="p-count">${Math.min(P.i + 1, P.steps.length)}/${P.steps.length}</div></div>`; }
+function header(pct) { return `<div class="p-head"><button class="p-close" id="pClose"><i class="ti ti-x"></i></button><div class="p-prog"><div class="f" style="width:${pct}%"></div></div><div class="p-count"><i class="ti ti-clock" style="font-size:13px;vertical-align:-1px"></i> <span id="pElapsed">${fmtElapsed()}</span> · ${Math.min(P.i + 1, P.steps.length)}/${P.steps.length}</div></div>`; }
 function playerRender() {
   P.phase = 'work';
   const el = document.getElementById('player'), s = P.steps[P.i];
   const pct = Math.round(P.i / (P.steps.length - 1) * 100);
   if (s.type === 'finish') {
     const c = todaySetCounts(P.session, P.dateKey);
-    el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">Done</div><div class="p-name">Session complete</div><div class="p-img glyphbig">${glyphSVG('cardio')}</div><div class="p-coach">${c.done}/${c.total} sets logged. Finish strong.</div></div><div class="p-foot"><div class="p-btnrow"><button class="p-nav" id="pBack"><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pFinish"><i class="ti ti-flag-check"></i> Complete workout</button></div></div>`;
+    const secs = Math.floor((Date.now() - P.startMs) / 1000), mins = Math.max(1, Math.round(secs / 60));
+    const vol = sessionVolume(P.session, P.dateKey);
+    const stat = (n, l) => `<div style="flex:1;background:var(--surface-2);border-radius:12px;padding:12px 6px"><div style="font-family:var(--mono);font-weight:800;font-size:20px">${n}</div><div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px">${l}</div></div>`;
+    el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">Done</div><div class="p-name">Session complete</div><div class="cbolt" style="margin:6px auto 14px"><i class="ti ti-flag-check"></i></div><div style="display:flex;gap:10px;width:100%;max-width:360px;margin-bottom:10px">${stat(fmt(secs), 'Time')}${stat(c.done + '/' + c.total, 'Sets')}${stat(vol > 0 ? vol : '—', 'Volume')}</div><div class="p-coach">Lock it in — and share the win.</div></div><div class="p-foot"><div class="p-btnrow"><button class="p-nav" id="pBack"><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pFinish"><i class="ti ti-flag-check"></i> Complete workout</button></div></div>`;
     document.getElementById('pClose').onclick = closePlayer; document.getElementById('pBack').onclick = goPrev;
-    document.getElementById('pFinish').onclick = () => { setCompleted(new Date(), true, { pct: 100, min: todayMinutes }); closePlayer(); renderToday(); renderCalendar(); renderProgress(); celebrate('full', 100); };
+    document.getElementById('pFinish').onclick = () => { setCompleted(new Date(), true, { pct: 100, min: mins }); closePlayer(); celebrate('full', 100); };
     return;
   }
   const ex = s.ex, h = howtoFor(ex);
@@ -1241,6 +1331,79 @@ function playerRender() {
   el.querySelectorAll('.p-logs .stepper').forEach(st => { const f = st.dataset.field, v = st.querySelector('.stval'), step = f === 'weight' ? 5 : 1; st.querySelector('[data-dec]').onclick = () => v.textContent = Math.max(0, (+v.textContent) - step); st.querySelector('[data-inc]').onclick = () => v.textContent = (+v.textContent) + step; });
   if (s.secs) { armTimer(s.secs); wireTimer(); }
   document.getElementById('pDone').onclick = () => { if (s.type === 'set') logCurrentSet(); else goNext(); };
+}
+
+/* ===== Share (camera + stats overlay) ===== */
+let shStream = null, shFacing = 'user';
+function shareStatsObj() {
+  const { current, best } = computeStreaks(), now = new Date(), base = masterDay(now);
+  const session = base.kind === 'rest' ? null : applyMode(scaledSession(base, todayMinutes), todayMode);
+  const c = session ? todaySetCounts(session, isoDate(now)) : { done: 0, total: 0 };
+  return { title: base.kind === 'rest' ? 'Recovery' : (session ? session.data.title : 'Workout'), focus: base.focus || '', week: programWeek(), streak: current, best, level: levelInfo().lvl, xp: xpTotal(), workouts: Object.keys(store.completions).length, sets: c.done, totalSets: c.total };
+}
+function shareOverlayHTML(s) {
+  return `<div class="sh-brand"><i class="ti ti-bolt"></i> WORKOUT</div><div class="sh-stats"><div><b>${esc(s.title)}</b><span>Week ${s.week}</span></div><div class="sh-row"><span><i class="ti ti-flame"></i> ${s.streak}d</span><span><i class="ti ti-checkbox"></i> ${s.sets}/${s.totalSets}</span><span><i class="ti ti-bolt"></i> ${s.xp} XP</span></div></div>`;
+}
+async function openShare() {
+  const stats = shareStatsObj(), el = document.getElementById('shareCam');
+  el.classList.add('open');
+  el.innerHTML = `<div class="sh-cam"><video id="shVideo" autoplay playsinline muted></video><div class="sh-ov">${shareOverlayHTML(stats)}</div><button class="p-close sh-x" id="shClose"><i class="ti ti-x"></i></button></div><div class="sh-foot"><button class="sh-card" id="shCard" title="Share a card"><i class="ti ti-photo"></i></button><button class="sh-shot" id="shShot"></button><button class="sh-card" id="shFlip" title="Flip camera"><i class="ti ti-rotate"></i></button></div>`;
+  document.getElementById('shClose').onclick = closeShare;
+  document.getElementById('shShot').onclick = () => captureShare(stats);
+  document.getElementById('shCard').onclick = () => shareCard(stats);
+  document.getElementById('shFlip').onclick = () => { shFacing = shFacing === 'user' ? 'environment' : 'user'; startCam(); };
+  shFacing = 'user'; startCam();
+}
+async function startCam() {
+  try {
+    if (shStream) shStream.getTracks().forEach(t => t.stop());
+    shStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: shFacing }, audio: false });
+    const v = document.getElementById('shVideo'); if (v) { v.srcObject = shStream; v.style.transform = shFacing === 'user' ? 'scaleX(-1)' : 'none'; }
+  } catch (e) { toast('Camera unavailable — sharing a card'); shareCard(shareStatsObj()); }
+}
+function closeShare() { if (shStream) { shStream.getTracks().forEach(t => t.stop()); shStream = null; } const el = document.getElementById('shareCam'); el.classList.remove('open'); el.innerHTML = ''; }
+function roundRectC(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function drawShareOverlay(c, W, H, s) {
+  const g = c.createLinearGradient(0, H * 0.5, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.85)'); c.fillStyle = g; c.fillRect(0, H * 0.45, W, H * 0.55);
+  c.fillStyle = '#ea580c'; roundRectC(c, 44, 44, 250, 78, 20); c.fill();
+  c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 46px sans-serif'; c.fillText('⚡ WORKOUT', 66, 98);
+  c.font = '800 66px sans-serif'; c.fillText(s.title, 60, H - 200);
+  c.fillStyle = '#f97316'; c.font = '700 34px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + s.focus).toUpperCase(), 60, H - 150);
+  c.fillStyle = '#fff'; c.font = '700 42px sans-serif'; c.fillText(`🔥 ${s.streak}   ✅ ${s.sets}/${s.totalSets}   ⚡ ${s.xp} XP`, 60, H - 80);
+}
+function captureShare(stats) {
+  const v = document.getElementById('shVideo');
+  if (!v || !v.videoWidth) { shareCard(stats); return; }
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const vr = v.videoWidth / v.videoHeight, tr = W / H; let dw, dh, dx, dy;
+  if (vr > tr) { dh = H; dw = H * vr; dx = (W - dw) / 2; dy = 0; } else { dw = W; dh = W / vr; dx = 0; dy = (H - dh) / 2; }
+  c.save(); if (shFacing === 'user') { c.translate(W, 0); c.scale(-1, 1); c.drawImage(v, dx, dy, dw, dh); } else c.drawImage(v, dx, dy, dw, dh); c.restore();
+  drawShareOverlay(c, W, H, stats);
+  cv.toBlob(b => shareBlob(b, stats), 'image/jpeg', 0.9);
+}
+function shareCard(s) {
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#1b2130'); g.addColorStop(1, '#0f1218'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#ea580c'; c.fillRect(0, 0, W, 14); roundRectC(c, 60, 66, 250, 80, 22); c.fill();
+  c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 46px sans-serif'; c.fillText('⚡ WORKOUT', 84, 122);
+  c.textAlign = 'center';
+  c.fillStyle = '#f97316'; c.font = '800 300px sans-serif'; c.fillText(String(s.streak), W / 2, H / 2 + 30);
+  c.fillStyle = '#9aa6b6'; c.font = '700 44px sans-serif'; c.fillText('DAY STREAK', W / 2, H / 2 + 110);
+  const y = H - 250, cell = (x, n, l) => { c.fillStyle = '#fff'; c.font = '800 62px sans-serif'; c.fillText(n, x, y); c.fillStyle = '#9aa6b6'; c.font = '600 30px sans-serif'; c.fillText(l, x, y + 46); };
+  cell(W * 0.25, String(s.workouts), 'WORKOUTS'); cell(W * 0.5, 'Lv ' + s.level, 'LEVEL'); cell(W * 0.75, String(s.xp), 'XP');
+  c.fillStyle = '#5b6472'; c.font = '500 30px sans-serif'; c.fillText('Week ' + s.week + ' of training', W / 2, H - 66);
+  c.textAlign = 'left';
+  cv.toBlob(b => shareBlob(b, s), 'image/jpeg', 0.9);
+}
+async function shareBlob(blob, s) {
+  const file = new File([blob], 'workout.jpg', { type: 'image/jpeg' });
+  const text = `Week ${s.week} · ${s.streak}-day streak · Level ${s.level} 💪⚡`;
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); closeShare(); return; } }
+  catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'workout.jpg'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  try { await navigator.clipboard.writeText(text); } catch (e) {}
+  toast('Saved — share it anywhere'); closeShare();
 }
 
 /* ===== Achievements ===== */
@@ -1543,7 +1706,7 @@ function renderToday() {
   const now = new Date(), dateKey = isoDate(now);
   const done = isCompleted(now), status = completionStatus(now);
   const base = masterDay(now), isRest = base.kind === 'rest';
-  const session = isRest ? base : scaledSession(base, todayMinutes);
+  const session = isRest ? base : applyMode(scaledSession(base, todayMinutes), todayMode);
   const w = session.data;
   const pct = done ? completionPct(now) : todayProgressPct(session, dateKey, false);
 
@@ -1552,17 +1715,20 @@ function renderToday() {
   gb.innerHTML = gamebarHTML(pct, todayMascotMsg(base.kind, done));
 
   document.getElementById('todayDate').textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('todayMeta').textContent = `Week ${programWeek()} · ${session.focus}`;
+  document.getElementById('todayMeta').textContent = `${greeting()} · Week ${programWeek()} · ${session.focus}`;
 
   const pill = document.getElementById('statusPill');
   pill.className = 'status-pill' + (isRest ? ' rest' : status === 'full' ? ' done' : status === 'partial' ? ' partial' : '');
   pill.innerHTML = isRest ? '<i class="ti ti-moon"></i> Rest' : status === 'full' ? '<i class="ti ti-circle-check"></i> Done' : status === 'partial' ? '<i class="ti ti-progress"></i> ' + completionPct(now) + '%' : '<i class="ti ti-circle"></i> To do';
 
-  const dur = document.getElementById('durRow');
-  if (isRest) dur.innerHTML = '';
+  const dur = document.getElementById('durRow'), modeEl = document.getElementById('modeRow');
+  if (isRest) { dur.innerHTML = ''; modeEl.innerHTML = ''; }
   else {
     dur.innerHTML = [15, 30, 45, 60].map(mnt => `<button class="dur${mnt === todayMinutes ? ' active' : ''}" data-min="${mnt}">${mnt} min</button>`).join('');
     dur.querySelectorAll('.dur').forEach(b => b.onclick = () => { todayMinutes = +b.dataset.min; renderToday(); });
+    const modes = [['full', 'ti-barbell', 'Gym'], ['minimal', 'ti-atom', 'Bands + DB'], ['none', 'ti-run', 'Bodyweight']];
+    modeEl.innerHTML = modes.map(([k, ic, l]) => `<button class="dur${k === todayMode ? ' active' : ''}" data-mode="${k}"><i class="ti ${ic}" style="font-size:14px;vertical-align:-2px"></i> ${l}</button>`).join('');
+    modeEl.querySelectorAll('.dur').forEach(b => b.onclick = () => { todayMode = b.dataset.mode; renderToday(); });
   }
 
   const body = document.getElementById('todayBody');
@@ -1576,17 +1742,13 @@ function renderToday() {
     return;
   }
 
-  const btns = done
-    ? `<button class="complete-btn done" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>${status === 'partial' ? 'Logged ' + completionPct(now) + '% — tap to clear' : 'Workout complete — tap to clear'}</button>`
-    : `<button class="complete-btn" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>Complete workout</button>
-       <button class="btn" id="partialBtn" style="margin-top:10px"><i class="ti ti-player-pause"></i> Finish early — log partial</button>`;
-
-  const startBtn = `<button class="complete-btn" id="startBtn" style="background:var(--fill-accent);color:var(--on-accent);border-color:var(--fill-accent);margin:0 0 14px"><span class="box" style="border:none;background:transparent;color:inherit"><i class="ti ti-player-play-filled"></i></span>Start workout — guided</button>`;
-  body.innerHTML = startBtn + `<div class="today-summary" id="todaySummary"></div><div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>${btns}`;
+  let totalEx = 0;
+  const summary = w.blocks.map(b => { totalEx += b.exercises.length; return `<div class="seq-note" style="margin:12px 0 6px">${esc(b.title)}</div>` + b.exercises.map(ex => exRowHTML(ex.name, ex.reps || '')).join(''); }).join('');
+  const startBtn = `<button class="complete-btn" id="startBtn" style="background:var(--fill-accent);color:var(--on-accent);border-color:var(--fill-accent);margin:0 0 14px"><span class="box" style="border:none;background:transparent;color:inherit"><i class="ti ti-player-play-filled"></i></span>${done ? 'Restart in guided mode' : 'Start workout'}</button>`;
+  const doneCard = done ? `<div class="card" style="background:${status === 'partial' ? 'var(--streak)' : 'var(--success)'};color:#fff;border:none;display:flex;align-items:center;gap:12px"><i class="ti ti-circle-check" style="font-size:26px"></i><div style="flex:1"><b>${status === 'partial' ? 'Logged ' + completionPct(now) + '% today' : 'Workout complete today'}</b><div style="font-size:12px;opacity:.9">Nice work.</div></div><button class="p-close" id="clearBtn" style="background:rgba(255,255,255,.22);color:#fff"><i class="ti ti-x"></i></button></div>` : '';
+  body.innerHTML = startBtn + doneCard + `<div class="section-label" style="margin-top:8px">Today · ${totalEx} exercises · ~${todayMinutes} min</div><div class="card">${summary}</div><p class="foot-note">Tap an exercise for how-to · complete your workout in guided mode.</p>`;
   document.getElementById('startBtn').onclick = openPlayer;
-  document.getElementById('completeBtn').onclick = () => toggleToday();
-  const pb = document.getElementById('partialBtn'); if (pb) pb.onclick = () => logPartial(session, dateKey);
-  wireToday(dateKey);
+  const cb = document.getElementById('clearBtn'); if (cb) cb.onclick = () => { setCompleted(now, false); renderToday(); renderCalendar(); renderProgress(); toast('Cleared'); };
 }
 function streakMessage(cur, done, rest) {
   if (rest) return done ? 'Bonus session logged — nice!' : 'Recovery keeps the streak alive.';
