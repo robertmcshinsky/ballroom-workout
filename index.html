@@ -484,7 +484,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '7.0.0';
+const APP_VERSION = '7.1.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -609,6 +609,48 @@ function glyphSVG(kind) { return `<svg viewBox="0 0 48 48" class="gsvg" aria-hid
 
 /* ---------- Exercise how-to database (photos + muscles + steps) ---------- */
 const CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/';
+/* Male-only / person-free demo images (vision-verified). Empty array = use diagram. */
+const IMGSEL = {
+  "90/90 hip stretch": [],
+  "Band pull-aparts": ["Band_Pull_Apart/0.jpg","Band_Pull_Apart/1.jpg"],
+  "Banded lateral walks": ["Monster_Walk/0.jpg","Monster_Walk/1.jpg"],
+  "Bicep Hold": ["Barbell_Curl/0.jpg","Barbell_Curl/1.jpg"],
+  "Burpee Dead Lifts": ["Barbell_Deadlift/0.jpg","Barbell_Deadlift/1.jpg"],
+  "Calf raises": ["Standing_Calf_Raises/0.jpg","Standing_Calf_Raises/1.jpg"],
+  "Cat-cow stretch": ["Cat_Stretch/0.jpg","Cat_Stretch/1.jpg"],
+  "Clean to Overhead Press": ["Clean_and_Press/0.jpg","Clean_and_Press/1.jpg"],
+  "Copenhagen side-lying adduction": ["Band_Hip_Adductions/0.jpg","Band_Hip_Adductions/1.jpg"],
+  "Couch stretch": ["Quad_Stretch/0.jpg","Quad_Stretch/1.jpg"],
+  "Dead Lift": ["Barbell_Deadlift/0.jpg","Barbell_Deadlift/1.jpg"],
+  "Dead bugs": [],
+  "Elevated Bulgarian Lunges": ["Split_Squats/0.jpg","Split_Squats/1.jpg"],
+  "Elevated Pike Push-ups": ["Handstand_Push-Ups/0.jpg","Handstand_Push-Ups/1.jpg"],
+  "Fire Hydrants": ["Hip_Circles_prone/0.jpg","Hip_Circles_prone/1.jpg"],
+  "Frog Plank Hold": ["Plank/0.jpg","Plank/1.jpg"],
+  "Glute bridges": ["Barbell_Glute_Bridge/0.jpg","Barbell_Glute_Bridge/1.jpg"],
+  "Hip Flexor Stretch": ["Kneeling_Hip_Flexor/0.jpg","Kneeling_Hip_Flexor/1.jpg"],
+  "Landmine rotations": ["Landmine_180s/0.jpg","Landmine_180s/1.jpg"],
+  "Leg Press": ["Leg_Press/0.jpg","Leg_Press/1.jpg"],
+  "Offset loaded carries": ["Farmers_Walk/0.jpg","Farmers_Walk/1.jpg"],
+  "Overhead Hold": ["Barbell_Shoulder_Press/0.jpg","Barbell_Shoulder_Press/1.jpg"],
+  "Pallof press": ["Pallof_Press_With_Rotation/0.jpg","Pallof_Press_With_Rotation/1.jpg"],
+  "Pec Fly": ["Cable_Crossover/0.jpg","Cable_Crossover/1.jpg"],
+  "Preacher Curl": ["Preacher_Curl/0.jpg","Preacher_Curl/1.jpg"],
+  "Pull-up Hold": ["Pullups/0.jpg","Pullups/1.jpg"],
+  "Push-up Hold": ["Pushups/0.jpg","Pushups/1.jpg"],
+  "Rear Delt": ["Cable_Rear_Delt_Fly/0.jpg","Cable_Rear_Delt_Fly/1.jpg"],
+  "Reverse Lunge": ["Crossover_Reverse_Lunge/0.jpg","Crossover_Reverse_Lunge/1.jpg"],
+  "Seated Box Jumps": ["Front_Box_Jump/0.jpg","Front_Box_Jump/1.jpg"],
+  "Side Plank Hold": ["Side_Bridge/0.jpg","Side_Bridge/1.jpg"],
+  "Single-leg Romanian deadlifts": ["Romanian_Deadlift/0.jpg","Romanian_Deadlift/1.jpg"],
+  "Squats": ["Barbell_Full_Squat/0.jpg","Barbell_Full_Squat/1.jpg"],
+  "Straight-Legged Dead Lifts": ["Wide_Stance_Stiff_Legs/0.jpg","Wide_Stance_Stiff_Legs/1.jpg"],
+  "T-spine rotation": ["Windmills/0.jpg","Windmills/1.jpg"],
+  "Tricep Push-up Hold": ["Triceps_Pushdown/0.jpg","Triceps_Pushdown/1.jpg"],
+  "Triceps Extension": ["Triceps_Pushdown/0.jpg","Triceps_Pushdown/1.jpg"],
+  "Tuck Jumps": ["Knee_Tuck_Jump/0.jpg","Knee_Tuck_Jump/1.jpg"],
+  "V-Up Hold": ["Side_Jackknife/0.jpg","Side_Jackknife/1.jpg"]
+};
 const EXDB = {
   "Band pull-aparts": { m: "shoulders, upper back", i: ["Band_Pull_Apart/0.jpg", "Band_Pull_Apart/1.jpg"], s: ["Hold a band at chest height, arms straight out in front, hands shoulder-width.", "Pull the band apart by sweeping your arms out wide, squeezing your shoulder blades together.", "Return slowly to the start with control. Keep ribs down and core braced."] },
   "Single-leg Romanian deadlifts": { m: "hamstrings, glutes", i: ["Romanian_Deadlift/0.jpg", "Romanian_Deadlift/1.jpg"], s: ["Stand on one leg with a soft knee, weight in the opposite hand.", "Hinge at the hip, reaching the weight down as the free leg extends straight behind you.", "Keep your back flat and hips square. Drive through the standing heel to return upright."] },
@@ -669,7 +711,7 @@ function exKey(n) {
     [/bulgarian/, "Elevated Bulgarian Lunges"],
     [/tiptoe squat|sitting squat|squat/, "Squats"],
     [/reverse lunge|lunge/, "Reverse Lunge"],
-    [/v-?up|v-?calf/, "V-Up Hold"], [/burpee/, "Burpee Dead Lifts"],
+    [/v-?up|v-?calf/, "V-Up Hold"], [/burpee/, "Burpee Dead Lifts"], [/dead ?lift/, "Dead Lift"],
     [/box jump|depth jump/, "Seated Box Jumps"], [/tuck jump|buttkicker|scissors|bronco/, "Tuck Jumps"],
     [/tricep push/, "Tricep Push-up Hold"], [/clap push|push-?up|pushup/, "Push-up Hold"],
     [/pike push/, "Elevated Pike Push-ups"], [/pull-?up|chin-?up/, "Pull-up Hold"],
@@ -688,7 +730,8 @@ function exKey(n) {
 function howtoFor(ex) {
   const name = typeof ex === 'string' ? ex : ex.name;
   const k = exKey(name), d = k && EXDB[k];
-  const imgs = d && d.i && d.i.length ? d.i.map(p => CDN + p) : [];
+  const sel = k && Object.prototype.hasOwnProperty.call(IMGSEL, k) ? IMGSEL[k] : ((d && d.i) || []);
+  const imgs = sel.length ? sel.map(p => CDN + p) : [];
   const muscles = (d && d.m) || (typeof ex === 'object' && ex.muscles) || '';
   const steps = (d && d.s) || (typeof ex === 'object' && (ex.formNote || ex.intensity) ? [ex.formNote || ex.intensity] : []);
   const equipment = typeof ex === 'object' && ex.equipment ? ex.equipment.join(', ') : '';
