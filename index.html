@@ -341,6 +341,37 @@
   .day-box.partial .dn { color: rgba(255,255,255,.8); }
   .status-pill.partial { background: var(--streak); color: #fff; }
   .sw.partial { background: var(--streak); border-color: var(--streak); }
+
+  /* ===== Full-screen guided player ===== */
+  .player { position: fixed; inset: 0; z-index: 90; background: var(--surface-0); display: none; flex-direction: column; }
+  .player.open { display: flex; }
+  .p-head { display: flex; align-items: center; gap: 12px; padding: calc(12px + var(--safe-t)) 16px 12px; border-bottom: 1px solid var(--border); }
+  .p-close { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; background: var(--surface-2); color: var(--text-secondary); flex: 0 0 auto; }
+  .p-prog { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .p-prog .f { height: 100%; background: var(--fill-accent); transition: width .3s ease; }
+  .p-count { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); flex: 0 0 auto; }
+  .p-step { flex: 1; overflow-y: auto; padding: 20px 18px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .p-block { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--fill-accent); font-weight: 700; }
+  .p-name { font-size: 25px; font-weight: 800; margin: 6px 0 2px; line-height: 1.1; }
+  .p-set { font-family: var(--mono); font-size: 14px; color: var(--text-secondary); }
+  .p-img { width: 100%; max-width: 320px; border-radius: 16px; aspect-ratio: 4/3; object-fit: cover; background: #fff; border: 1px solid var(--border); margin: 12px 0; }
+  .p-img.glyphbig { display: grid; place-items: center; background: var(--fill-accent-weak); }
+  .p-img.glyphbig .gsvg { width: 78px; height: 78px; }
+  .p-coach { background: var(--fill-accent-weak); color: var(--fill-accent); border-radius: 12px; padding: 10px 14px; font-weight: 600; font-size: 14px; margin: 4px 0 12px; max-width: 340px; }
+  .p-timer { width: 190px; height: 190px; border-radius: 50%; display: grid; place-items: center; position: relative; margin: 6px 0 12px; }
+  .p-timer::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; background: var(--surface-0); }
+  .p-clock { position: relative; font-family: var(--mono); font-size: 44px; font-weight: 800; }
+  .p-tbtns { display: flex; gap: 10px; margin-bottom: 8px; }
+  .p-tbtn { width: 46px; height: 46px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-1); display: grid; place-items: center; font-size: 20px; color: var(--text-primary); font-family: var(--mono); font-weight: 700; }
+  .p-tbtn.go { width: auto; padding: 0 20px; background: var(--fill-accent); color: var(--on-accent); border-color: var(--fill-accent); font-weight: 700; }
+  .p-logs { display: flex; gap: 10px; width: 100%; max-width: 340px; margin: 4px 0; }
+  .p-foot { padding: 12px 16px calc(14px + var(--safe-b)); display: flex; gap: 10px; border-top: 1px solid var(--border); }
+  .p-nav { flex: 0 0 auto; width: 54px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-1); display: grid; place-items: center; font-size: 22px; }
+  .p-nav:disabled { opacity: .35; }
+  .p-main { flex: 1; border-radius: 14px; background: var(--success); color: var(--on-success); border: none; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 0 var(--shadow-dark); }
+  .p-main:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--shadow-dark); }
+  .p-main.rest { background: var(--fill-accent); color: var(--on-accent); }
+  .p-rest-note { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
   .gb-bubble { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; position: relative; }
   .gb-bubble::before { content: ''; position: absolute; left: -7px; top: 18px; border: 7px solid transparent; border-right-color: var(--surface-2); }
   .gb-stats { display: flex; gap: 10px; margin-top: 12px; }
@@ -438,7 +469,7 @@
 <body>
 
 <header class="app-bar">
-  <i class="ti ti-barbell brand" aria-hidden="true"></i>
+  <i class="ti ti-bolt brand" aria-hidden="true"></i>
   <h1>Workout</h1>
   <span class="ver" id="verTag"></span>
   <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"><i class="ti ti-moon" aria-hidden="true"></i></button>
@@ -549,6 +580,9 @@
     <div class="section-label">Strength Progress (4 Weeks)</div>
     <div id="perfBody"></div>
 
+    <div class="section-label">Personal Bests</div>
+    <div id="maxesBody"></div>
+
     <div class="section-label">All Time</div>
     <div class="stat-row three">
       <div class="stat-card pad-sm"><div class="stat-num" id="atTotal">0</div><div class="stat-lbl">Total done</div></div>
@@ -580,6 +614,7 @@
 
 <div class="modal-back" id="exBack"><div class="modal" id="exModal"></div></div>
 <div class="celebrate" id="celebrate"></div>
+<div class="player" id="player"></div>
 <div id="equipment-checklist"></div>
 <div class="toast" id="toast"></div>
 
@@ -587,7 +622,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '10.1.0';
+const APP_VERSION = '11.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1086,6 +1121,112 @@ function celebrate(status, pct) {
   document.getElementById('celebClose').onclick = () => { el.classList.remove('show'); el.innerHTML = ''; };
 }
 
+/* ===== Coaching + Personal Bests ===== */
+function lastWeight(name) { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); const days = Object.keys(logs).sort().reverse(); for (const d of days) { const ex = logs[d][name]; if (ex && ex.weight) return +ex.weight; } return null; }
+function bestWeight(name) { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); let best = 0; for (const d in logs) { const ex = logs[d][name]; if (ex && ex.weight) best = Math.max(best, +ex.weight); } return best; }
+function coachCue(ex) {
+  const t = targetReps(ex), weighted = (ex.fields || []).includes('weight'), lw = lastWeight(ex.name);
+  if (/hold/i.test(ex.name)) return 'Hold strong — brace your core and breathe.';
+  if (weighted) return lw ? `Last time: ${lw} lb. If ${t} felt clean, add 5 lb today.` : `Pick a weight that makes the final 2 reps tough.`;
+  return `Aim for ${t} controlled reps — quality over speed.`;
+}
+function renderMaxes() {
+  const tracked = ["Straight-Legged Dead Lifts", "Squats", "Reverse Lunge", "Weighted Calf Raises", "Calf raises", "Landmine rotations", "Offset loaded carries", "Pallof press", "Glute bridges", "Dead Lift", "Overhead Hold", "Bicep Hold", "Clean to Overhead Press"];
+  const seen = {}; let html = '';
+  tracked.forEach(n => { if (seen[n]) return; seen[n] = 1; const b = bestWeight(n); if (b > 0) html += `<div class="perf-row"><span class="perf-name">${esc(n)}</span><span class="perf-val">${b} lbs</span></div>`; });
+  document.getElementById('maxesBody').innerHTML = html || `<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px">Your heaviest logged weights appear here as you train.</div>`;
+}
+
+/* ===== Full-screen guided player ===== */
+let P = null;
+function stepSeconds(ex) { const r = (ex.reps || '').toLowerCase(); let m = r.match(/(\d+)\s*min/); if (m) return +m[1] * 60; m = r.match(/(\d+)\s*sec/); if (m) return +m[1]; m = r.match(/(\d+)\s*s(\b|\/)/); if (m) return +m[1]; return 0; }
+function restSecondsFor(block) { const m = (block && block.title || '').match(/(\d+)\s*sec\s*rest/i); return m ? +m[1] : 45; }
+function pImgFail(img) { const k = img.dataset.kind; img.outerHTML = `<div class="p-img glyphbig">${glyphSVG(k)}</div>`; }
+function buildSteps(session) {
+  const steps = [];
+  session.data.blocks.forEach(block => {
+    const rounds = roundsFromTitle(block.title), rest = restSecondsFor(block);
+    block.exercises.forEach(ex => {
+      if (ex.loggable) { for (let r = 1; r <= rounds; r++) steps.push({ type: 'set', ex, block, round: r, rounds, rest, secs: stepSeconds(ex) }); }
+      else steps.push({ type: 'do', ex, block, secs: stepSeconds(ex) });
+    });
+  });
+  steps.push({ type: 'finish' });
+  return steps;
+}
+function openPlayer() {
+  const now = new Date();
+  const base = masterDay(now);
+  if (base.kind === 'rest') { toast('Rest day — nothing to start'); return; }
+  const session = scaledSession(base, todayMinutes);
+  P = { session, dateKey: isoDate(now), steps: buildSteps(session), i: 0, phase: 'work', t: null, left: 0, total: 0, running: false };
+  document.getElementById('player').classList.add('open');
+  playerRender();
+}
+function closePlayer() { stopTick(); document.getElementById('player').classList.remove('open'); P = null; }
+function stopTick() { if (P && P.t) { clearInterval(P.t); P.t = null; } if (P) P.running = false; }
+function fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function setClock() { const el = document.getElementById('pClock'); if (!el || !P) return; el.textContent = fmt(P.left); const ring = document.getElementById('pRing'); if (ring) { const pct = P.total ? (1 - P.left / P.total) * 360 : 0; ring.style.background = `conic-gradient(${P.phase === 'rest' ? 'var(--streak)' : 'var(--fill-accent)'} ${pct}deg, var(--surface-2) 0)`; } }
+function tick() { if (!P) return; P.left -= 1; setClock(); if (P.left <= 0) { stopTick(); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} const g = document.getElementById('pGo'); if (g) g.textContent = 'Start'; if (P.phase === 'rest') { P.phase = 'work'; goNext(); } } }
+function armTimer(sec) { P.left = sec; P.total = sec; P.running = false; setClock(); }
+function playTimer() { if (!P) return; if (P.running) { stopTick(); } else if (P.left > 0) { P.running = true; P.t = setInterval(tick, 1000); } const g = document.getElementById('pGo'); if (g) g.textContent = P.running ? 'Pause' : 'Start'; }
+function bumpTimer(d) { P.left = Math.max(0, P.left + d); P.total = Math.max(P.total, P.left); setClock(); }
+function timerHTML(sec, running) { return `<div class="p-timer" id="pRing"><span class="p-clock" id="pClock">${fmt(sec)}</span></div><div class="p-tbtns"><button class="p-tbtn" id="pMinus">-15</button><button class="p-tbtn go" id="pGo">${running ? 'Pause' : 'Start'}</button><button class="p-tbtn" id="pPlus">+15</button></div>`; }
+function wireTimer() { const g = document.getElementById('pGo'); if (!g) return; g.onclick = playTimer; document.getElementById('pMinus').onclick = () => bumpTimer(-15); document.getElementById('pPlus').onclick = () => bumpTimer(15); }
+function goNext() { stopTick(); if (P.i < P.steps.length - 1) { P.i++; playerRender(); } }
+function goPrev() { stopTick(); if (P.i > 0) { P.i--; playerRender(); } }
+function logCurrentSet() {
+  const s = P.steps[P.i];
+  const w = document.getElementById('pWeightVal'), rp = document.getElementById('pRepsVal');
+  const log = getLog(P.dateKey, s.ex.name) || {};
+  const sets = normalizeSets(log.sets, s.rounds, targetReps(s.ex));
+  sets[s.round - 1] = { reps: rp ? +rp.textContent : targetReps(s.ex), done: true };
+  const data = { sets }; if (w) data.weight = +w.textContent;
+  saveLog(P.dateKey, s.ex.name, data);
+  playerRestScreen(s.rest || 45);
+}
+function playerRestScreen(sec) {
+  const next = P.steps[P.i + 1];
+  const upNext = next ? (next.type === 'finish' ? 'Finish' : next.ex.name) : 'Finish';
+  const pct = Math.round(P.i / (P.steps.length - 1) * 100);
+  const el = document.getElementById('player');
+  el.querySelector('.p-step').innerHTML = `<div class="p-block">Rest</div><div class="p-name">Catch your breath</div>${timerHTML(sec, true)}<div class="p-rest-note">Up next: ${esc(upNext)}</div>`;
+  el.querySelector('.p-foot').innerHTML = `<button class="p-main rest" id="pSkip"><i class="ti ti-player-track-next"></i> Skip rest</button>`;
+  P.phase = 'rest'; armTimer(sec); P.running = true; P.t = setInterval(tick, 1000);
+  wireTimer();
+  document.getElementById('pSkip').onclick = () => { P.phase = 'work'; goNext(); };
+}
+function header(pct) { return `<div class="p-head"><button class="p-close" id="pClose"><i class="ti ti-x"></i></button><div class="p-prog"><div class="f" style="width:${pct}%"></div></div><div class="p-count">${Math.min(P.i + 1, P.steps.length)}/${P.steps.length}</div></div>`; }
+function playerRender() {
+  P.phase = 'work';
+  const el = document.getElementById('player'), s = P.steps[P.i];
+  const pct = Math.round(P.i / (P.steps.length - 1) * 100);
+  if (s.type === 'finish') {
+    const c = todaySetCounts(P.session, P.dateKey);
+    el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">Done</div><div class="p-name">Session complete</div><div class="p-img glyphbig">${glyphSVG('cardio')}</div><div class="p-coach">${c.done}/${c.total} sets logged. Finish strong.</div></div><div class="p-foot"><button class="p-nav" id="pBack"><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pFinish"><i class="ti ti-flag-check"></i> Complete workout</button></div>`;
+    document.getElementById('pClose').onclick = closePlayer; document.getElementById('pBack').onclick = goPrev;
+    document.getElementById('pFinish').onclick = () => { setCompleted(new Date(), true, { pct: 100, min: todayMinutes }); closePlayer(); renderToday(); renderCalendar(); renderProgress(); celebrate('full', 100); };
+    return;
+  }
+  const ex = s.ex, h = howtoFor(ex);
+  const media = h.imgs.length ? `<img class="p-img" data-kind="${kindFor(ex.name)}" src="${h.imgs[0]}" alt="" onerror="pImgFail(this)">` : `<div class="p-img glyphbig">${glyphSVG(kindFor(ex.name))}</div>`;
+  let mid = '';
+  if (s.type === 'set') {
+    const weighted = (ex.fields || []).includes('weight'), lw = lastWeight(ex.name), tr = targetReps(ex);
+    const w = weighted ? `<div class="stepper" data-field="weight"><button data-dec>−</button><div class="mid"><span class="stlbl">LBS</span><span class="stval" id="pWeightVal">${lw || 0}</span></div><button data-inc>+</button></div>` : '';
+    const rp = `<div class="stepper" data-field="reps"><button data-dec>−</button><div class="mid"><span class="stlbl">REPS</span><span class="stval" id="pRepsVal">${tr}</span></div><button data-inc>+</button></div>`;
+    mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · target ${esc(ex.reps || tr)}</div><div class="p-coach">${coachCue(ex)}</div>${s.secs ? timerHTML(s.secs, false) : ''}<div class="p-logs">${w}${rp}</div>`;
+  } else {
+    mid = `<div class="p-set">${esc(ex.reps || 'Complete this movement')}</div><div class="p-coach">${ex.formNote ? esc(ex.formNote) : 'Move with control.'}</div>${s.secs ? timerHTML(s.secs, false) : ''}`;
+  }
+  el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">${esc(s.block && s.block.title || '')}</div><div class="p-name">${esc(ex.name)}</div>${media}${mid}</div><div class="p-foot"><button class="p-nav" id="pBack" ${P.i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pDone"><i class="ti ti-check"></i> ${s.type === 'set' ? 'Log set' : 'Done'}</button></div>`;
+  document.getElementById('pClose').onclick = closePlayer;
+  document.getElementById('pBack').onclick = goPrev;
+  el.querySelectorAll('.p-logs .stepper').forEach(st => { const f = st.dataset.field, v = st.querySelector('.stval'), step = f === 'weight' ? 5 : 1; st.querySelector('[data-dec]').onclick = () => v.textContent = Math.max(0, (+v.textContent) - step); st.querySelector('[data-inc]').onclick = () => v.textContent = (+v.textContent) + step; });
+  if (s.secs) { armTimer(s.secs); wireTimer(); }
+  document.getElementById('pDone').onclick = () => { if (s.type === 'set') logCurrentSet(); else goNext(); };
+}
+
 /* ===== Achievements ===== */
 const ACHV = [
   { icon: 'ti-shoe', name: 'First Steps', test: s => s.workouts >= 1 },
@@ -1424,7 +1565,9 @@ function renderToday() {
     : `<button class="complete-btn" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>Complete workout</button>
        <button class="btn" id="partialBtn" style="margin-top:10px"><i class="ti ti-player-pause"></i> Finish early — log partial</button>`;
 
-  body.innerHTML = `<div class="today-summary" id="todaySummary"></div><div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>${btns}`;
+  const startBtn = `<button class="complete-btn" id="startBtn" style="background:var(--fill-accent);color:var(--on-accent);border-color:var(--fill-accent);margin:0 0 14px"><span class="box" style="border:none;background:transparent;color:inherit"><i class="ti ti-player-play-filled"></i></span>Start workout — guided</button>`;
+  body.innerHTML = startBtn + `<div class="today-summary" id="todaySummary"></div><div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>${btns}`;
+  document.getElementById('startBtn').onclick = openPlayer;
   document.getElementById('completeBtn').onclick = () => toggleToday();
   const pb = document.getElementById('partialBtn'); if (pb) pb.onclick = () => logPartial(session, dateKey);
   wireToday(dateKey);
@@ -1521,6 +1664,7 @@ function renderProgress() {
   document.getElementById('mPctBar').style.width = mPct + '%';
 
   renderPerformance();
+  renderMaxes();
   renderBadges();
 
   const { best } = computeStreaks();
@@ -1576,7 +1720,7 @@ document.getElementById('exportBtn').onclick = () => {
    PWA: manifest, icon, service worker, install prompt
    ===================================================================== */
 function iconDataUrl(size) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0891b2"/><path d="M256 104 L356 208 L256 408 L156 208 Z" fill="#fff"/><path d="M256 104 L356 208 L256 250 L156 208 Z" fill="#bdeaf5"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#ea580c"/></linearGradient></defs><rect width="512" height="512" rx="116" fill="url(#g)"/><path d="M300 52 L150 300 L246 300 L206 460 L392 196 L296 196 Z" fill="#fff"/></svg>`;
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
 (function injectManifest() {
@@ -1584,7 +1728,7 @@ function iconDataUrl(size) {
     name: 'Workout Tracker', short_name: 'Workout',
     description: 'Personal workout tracker with offline support',
     start_url: BASE, scope: BASE, display: 'standalone', orientation: 'portrait',
-    background_color: '#f4f6fa', theme_color: '#0891b2',
+    background_color: '#12151b', theme_color: '#ea580c',
     icons: [{ src: iconDataUrl(192), sizes: '192x192', type: 'image/svg+xml', purpose: 'any' }, { src: iconDataUrl(512), sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }]
   };
   const add = (rel, href) => { const l = document.createElement('link'); l.rel = rel; l.href = href; document.head.appendChild(l); };
