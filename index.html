@@ -267,10 +267,12 @@
   .install-banner .txt b { font-weight: 700; display: block; }
   .install-banner button { font-size: 13px; font-weight: 700; padding: 9px 15px; border-radius: 10px; background: var(--fill-accent); color: var(--on-accent); white-space: nowrap; }
 
-  nav.tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; display: flex; background: var(--surface-1); border-top: 1px solid var(--border); padding-bottom: var(--safe-b); }
-  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 8px; color: var(--text-secondary); font-size: 11px; font-weight: 600; border-top: 2px solid transparent; margin-top: -1px; }
-  .tab .ti { font-size: 23px; }
-  .tab.active { color: var(--fill-accent); border-top-color: var(--fill-accent); }
+  nav.tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; display: flex; background: var(--surface-1); border-top: 1px solid var(--border); padding: 6px 6px calc(6px + var(--safe-b)); }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 5px 0; color: var(--text-secondary); font-size: 11px; font-weight: 600; }
+  .tab .ti { font-size: 22px; padding: 5px 18px; border-radius: 999px; transition: background .15s ease, color .15s ease, transform .1s ease; }
+  .tab.active { color: var(--fill-accent); }
+  .tab.active .ti { background: var(--fill-accent-weak); color: var(--fill-accent); }
+  .tab:active .ti { transform: scale(.9); }
 
   .toast { position: fixed; left: 50%; bottom: calc(80px + var(--safe-b)); transform: translateX(-50%) translateY(16px); background: var(--text-primary); color: var(--surface-1); font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 999px; z-index: 60; opacity: 0; pointer-events: none; transition: all .28s ease; max-width: 90%; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -365,7 +367,9 @@
   .p-tbtn { width: 46px; height: 46px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-1); display: grid; place-items: center; font-size: 20px; color: var(--text-primary); font-family: var(--mono); font-weight: 700; }
   .p-tbtn.go { width: auto; padding: 0 20px; background: var(--fill-accent); color: var(--on-accent); border-color: var(--fill-accent); font-weight: 700; }
   .p-logs { display: flex; gap: 10px; width: 100%; max-width: 340px; margin: 4px 0; }
-  .p-foot { padding: 12px 16px calc(14px + var(--safe-b)); display: flex; gap: 10px; border-top: 1px solid var(--border); }
+  .p-foot { padding: 10px 16px calc(12px + var(--safe-b)); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); }
+  .p-btnrow { display: flex; gap: 10px; width: 100%; }
+  .p-nextline { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-secondary); text-align: center; }
   .p-nav { flex: 0 0 auto; width: 54px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-1); display: grid; place-items: center; font-size: 22px; }
   .p-nav:disabled { opacity: .35; }
   .p-main { flex: 1; border-radius: 14px; background: var(--success); color: var(--on-success); border: none; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 0 var(--shadow-dark); }
@@ -622,7 +626,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '11.0.0';
+const APP_VERSION = '11.1.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1167,7 +1171,17 @@ function closePlayer() { stopTick(); document.getElementById('player').classList
 function stopTick() { if (P && P.t) { clearInterval(P.t); P.t = null; } if (P) P.running = false; }
 function fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function setClock() { const el = document.getElementById('pClock'); if (!el || !P) return; el.textContent = fmt(P.left); const ring = document.getElementById('pRing'); if (ring) { const pct = P.total ? (1 - P.left / P.total) * 360 : 0; ring.style.background = `conic-gradient(${P.phase === 'rest' ? 'var(--streak)' : 'var(--fill-accent)'} ${pct}deg, var(--surface-2) 0)`; } }
-function tick() { if (!P) return; P.left -= 1; setClock(); if (P.left <= 0) { stopTick(); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} const g = document.getElementById('pGo'); if (g) g.textContent = 'Start'; if (P.phase === 'rest') { P.phase = 'work'; goNext(); } } }
+function tick() {
+  if (!P) return;
+  P.left -= 1; setClock();
+  if (P.left > 0) return;
+  stopTick();
+  try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {}
+  if (P.phase === 'rest') { P.phase = 'work'; goNext(); return; }
+  const s = P.steps[P.i];               // work timer finished → auto-advance
+  if (s.type === 'set') logCurrentSet();
+  else goNext();
+}
 function armTimer(sec) { P.left = sec; P.total = sec; P.running = false; setClock(); }
 function playTimer() { if (!P) return; if (P.running) { stopTick(); } else if (P.left > 0) { P.running = true; P.t = setInterval(tick, 1000); } const g = document.getElementById('pGo'); if (g) g.textContent = P.running ? 'Pause' : 'Start'; }
 function bumpTimer(d) { P.left = Math.max(0, P.left + d); P.total = Math.max(P.total, P.left); setClock(); }
@@ -1191,7 +1205,7 @@ function playerRestScreen(sec) {
   const pct = Math.round(P.i / (P.steps.length - 1) * 100);
   const el = document.getElementById('player');
   el.querySelector('.p-step').innerHTML = `<div class="p-block">Rest</div><div class="p-name">Catch your breath</div>${timerHTML(sec, true)}<div class="p-rest-note">Up next: ${esc(upNext)}</div>`;
-  el.querySelector('.p-foot').innerHTML = `<button class="p-main rest" id="pSkip"><i class="ti ti-player-track-next"></i> Skip rest</button>`;
+  el.querySelector('.p-foot').innerHTML = `<div class="p-btnrow"><button class="p-main rest" id="pSkip"><i class="ti ti-player-track-next"></i> Skip rest &amp; continue</button></div>`;
   P.phase = 'rest'; armTimer(sec); P.running = true; P.t = setInterval(tick, 1000);
   wireTimer();
   document.getElementById('pSkip').onclick = () => { P.phase = 'work'; goNext(); };
@@ -1203,12 +1217,13 @@ function playerRender() {
   const pct = Math.round(P.i / (P.steps.length - 1) * 100);
   if (s.type === 'finish') {
     const c = todaySetCounts(P.session, P.dateKey);
-    el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">Done</div><div class="p-name">Session complete</div><div class="p-img glyphbig">${glyphSVG('cardio')}</div><div class="p-coach">${c.done}/${c.total} sets logged. Finish strong.</div></div><div class="p-foot"><button class="p-nav" id="pBack"><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pFinish"><i class="ti ti-flag-check"></i> Complete workout</button></div>`;
+    el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">Done</div><div class="p-name">Session complete</div><div class="p-img glyphbig">${glyphSVG('cardio')}</div><div class="p-coach">${c.done}/${c.total} sets logged. Finish strong.</div></div><div class="p-foot"><div class="p-btnrow"><button class="p-nav" id="pBack"><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pFinish"><i class="ti ti-flag-check"></i> Complete workout</button></div></div>`;
     document.getElementById('pClose').onclick = closePlayer; document.getElementById('pBack').onclick = goPrev;
     document.getElementById('pFinish').onclick = () => { setCompleted(new Date(), true, { pct: 100, min: todayMinutes }); closePlayer(); renderToday(); renderCalendar(); renderProgress(); celebrate('full', 100); };
     return;
   }
   const ex = s.ex, h = howtoFor(ex);
+  const nx = P.steps[P.i + 1], nextName = nx ? (nx.type === 'finish' ? 'Finish' : nx.ex.name) : '';
   const media = h.imgs.length ? `<img class="p-img" data-kind="${kindFor(ex.name)}" src="${h.imgs[0]}" alt="" onerror="pImgFail(this)">` : `<div class="p-img glyphbig">${glyphSVG(kindFor(ex.name))}</div>`;
   let mid = '';
   if (s.type === 'set') {
@@ -1219,9 +1234,10 @@ function playerRender() {
   } else {
     mid = `<div class="p-set">${esc(ex.reps || 'Complete this movement')}</div><div class="p-coach">${ex.formNote ? esc(ex.formNote) : 'Move with control.'}</div>${s.secs ? timerHTML(s.secs, false) : ''}`;
   }
-  el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">${esc(s.block && s.block.title || '')}</div><div class="p-name">${esc(ex.name)}</div>${media}${mid}</div><div class="p-foot"><button class="p-nav" id="pBack" ${P.i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pDone"><i class="ti ti-check"></i> ${s.type === 'set' ? 'Log set' : 'Done'}</button></div>`;
+  el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">${esc(s.block && s.block.title || '')}</div><div class="p-name">${esc(ex.name)}</div>${media}${mid}</div><div class="p-foot">${nextName ? `<div class="p-nextline">Next · ${esc(nextName)}</div>` : ''}<div class="p-btnrow"><button class="p-nav" id="pBack" ${P.i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pDone"><i class="ti ti-check"></i> ${s.type === 'set' ? 'Log set' : 'Done'}</button><button class="p-nav" id="pSkipStep" ${P.i >= P.steps.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button></div></div>`;
   document.getElementById('pClose').onclick = closePlayer;
   document.getElementById('pBack').onclick = goPrev;
+  document.getElementById('pSkipStep').onclick = goNext;
   el.querySelectorAll('.p-logs .stepper').forEach(st => { const f = st.dataset.field, v = st.querySelector('.stval'), step = f === 'weight' ? 5 : 1; st.querySelector('[data-dec]').onclick = () => v.textContent = Math.max(0, (+v.textContent) - step); st.querySelector('[data-inc]').onclick = () => v.textContent = (+v.textContent) + step; });
   if (s.secs) { armTimer(s.secs); wireTimer(); }
   document.getElementById('pDone').onclick = () => { if (s.type === 'set') logCurrentSet(); else goNext(); };
