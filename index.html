@@ -310,14 +310,14 @@
 
   /* ===== v9: Duolingo-style gamification palette + components ===== */
   :root, :root[data-theme="light"], :root[data-theme="dark"] {
-    --fill-accent: #58cc02; --fill-accent-weak: rgba(88,204,2,0.15); --on-accent: #ffffff;
-    --success: #58cc02; --success-weak: rgba(88,204,2,0.15); --on-success: #ffffff;
-    --xp: #ffc800; --streak: #ff9600; --shadow-dark: rgba(0,0,0,0.18);
+    --fill-accent: #ea580c; --fill-accent-weak: rgba(234,88,12,0.12); --on-accent: #ffffff;
+    --success: #16a34a; --success-weak: rgba(22,163,74,0.12); --on-success: #ffffff;
+    --xp: #f59e0b; --streak: #f97316; --shadow-dark: rgba(0,0,0,0.22);
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-    --fill-accent: #58cc02; --fill-accent-weak: rgba(88,204,2,0.2); --on-accent: #ffffff;
-    --success: #58cc02; --success-weak: rgba(88,204,2,0.2); --on-success: #ffffff;
-    --shadow-dark: rgba(0,0,0,0.5);
+    --fill-accent: #f97316; --fill-accent-weak: rgba(249,115,22,0.16); --on-accent: #241206;
+    --success: #22c55e; --success-weak: rgba(34,197,94,0.16); --on-success: #052610;
+    --xp: #fbbf24; --streak: #fb923c; --shadow-dark: rgba(0,0,0,0.5);
   } }
 
   /* Chunky 3D buttons */
@@ -333,6 +333,14 @@
   .gb-top { display: flex; align-items: center; gap: 12px; }
   .gb-mascot { width: 60px; height: 60px; flex: 0 0 auto; }
   .gb-mascot svg { width: 100%; height: 100%; }
+  .gb-coach { width: 52px; height: 52px; flex: 0 0 auto; border-radius: 12px; background: var(--fill-accent); color: var(--on-accent); display: grid; place-items: center; box-shadow: 0 3px 0 var(--shadow-dark); }
+  .gb-coach .ti { font-size: 27px; }
+  .cbolt { width: 76px; height: 76px; margin: 0 auto 10px; border-radius: 18px; background: var(--fill-accent); color: var(--on-accent); display: grid; place-items: center; animation: pop .4s cubic-bezier(.2,1.3,.4,1); }
+  .cbolt .ti { font-size: 42px; }
+  .cal-cell.partial, .day-box.partial { background: var(--streak); border-color: var(--streak); color: #fff; }
+  .day-box.partial .dn { color: rgba(255,255,255,.8); }
+  .status-pill.partial { background: var(--streak); color: #fff; }
+  .sw.partial { background: var(--streak); border-color: var(--streak); }
   .gb-bubble { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; position: relative; }
   .gb-bubble::before { content: ''; position: absolute; left: -7px; top: 18px; border: 7px solid transparent; border-right-color: var(--surface-2); }
   .gb-stats { display: flex; gap: 10px; margin-top: 12px; }
@@ -503,6 +511,7 @@
       <div class="cal-grid" id="calGrid"></div>
       <div class="legend">
         <span><span class="sw done"></span> Completed</span>
+        <span><span class="sw partial"></span> Partial</span>
         <span><span class="sw missed"></span> Missed</span>
         <span><span class="sw rest"></span> Rest</span>
         <span><span class="sw"></span> Scheduled</span>
@@ -578,7 +587,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '9.0.0';
+const APP_VERSION = '10.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -978,9 +987,39 @@ function masterDay(date) {
   }
 }
 
+/* ===== Duration variants (15/30/45/60) ===== */
+let todayMinutes = 30;
+function scaledSession(base, minutes) {
+  const pi = programPhaseIdx(), bp = pi === 0 ? workoutPlan.phase1 : workoutPlan.phase2, jp = JA.phases[pi];
+  if (base.kind === 'ball') {
+    let data;
+    if (minutes <= 15) data = workoutPlan.emergencyVersions.minimal15;
+    else if (minutes <= 30) data = bp.full30;
+    else if (minutes <= 45) data = workoutPlan.extraVersions.extended45;
+    else data = workoutPlan.extraVersions.long60;
+    return Object.assign({}, base, { data, minutes });
+  }
+  if (base.kind === 'legs') {
+    const cnt = { 15: 2, 30: 3, 45: 4, 60: 5 }[minutes] || 3;
+    const blocks = jp.seqs.slice(0, cnt).map(sq => ({ title: 'Sequence ' + sq.n + ' · 3 rounds', exercises: sq.ex.map(e => jaEx(e[0], e[1])) }));
+    return Object.assign({}, base, { data: { title: base.data.title, dayType: 'Legs', blocks }, minutes });
+  }
+  if (base.kind === 'tb') {
+    const cnt = { 15: 3, 30: 5, 45: 7, 60: 7 }[minutes] || 5;
+    const ex = jp.tb.slice(0, cnt).map(e => jaEx(e[0], e[1]));
+    return Object.assign({}, base, { data: { title: base.data.title, dayType: 'Total Body', blocks: [{ title: 'Circuit · 3 rounds', exercises: ex }] }, minutes });
+  }
+  return base;
+}
+function todaySetCounts(session, dateKey) {
+  let done = 0, total = 0;
+  session.data.blocks.forEach(b => { const r = roundsFromTitle(b.title); b.exercises.forEach(ex => { if (ex.loggable) { total += r; const l = getLog(dateKey, ex.name); if (l && Array.isArray(l.sets)) done += l.sets.filter(s => s && s.done).length; } }); });
+  return { done, total };
+}
+
 /* ===== Gamification ===== */
 function allSetsDone() { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); let n = 0; for (const d in logs) for (const e in logs[d]) { const s = logs[d][e].sets; if (Array.isArray(s)) n += s.filter(x => x && x.done).length; } return n; }
-function xpTotal() { return Object.keys(store.completions).length * 50 + allSetsDone() * 2; }
+function xpTotal() { let xp = 0; for (const k in store.completions) { const v = store.completions[k]; const pct = v === true ? 100 : (v.pct || 100); xp += Math.round(50 * pct / 100); } return xp + allSetsDone() * 2; }
 function levelInfo() { const xp = xpTotal(); return { xp, lvl: Math.floor(xp / 100) + 1, into: xp % 100 }; }
 function mascotSVG() {
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -996,17 +1035,17 @@ function mascotSVG() {
   </svg>`;
 }
 function todayMascotMsg(kind, done) {
-  if (kind === 'rest') return done ? "Bonus session logged — love the hustle! 💪" : "Rest day. Recover well and I'll see you tomorrow!";
-  if (done) return "Crushed it! Come back tomorrow to keep your streak going. 🔥";
-  const lines = ["Let's move — your future self says thanks!", "Time to train. You've got this! 💪", "Every rep counts. Let's go!", "Show up today, shine on the floor."];
+  if (kind === 'rest') return done ? "Bonus session logged. Respect." : "Recovery day. Rest hard, come back harder.";
+  if (done) return "Done. Back at it tomorrow.";
+  const lines = ["Time to work.", "No excuses — lock in.", "Earn it today.", "Let's get after it."];
   return lines[new Date().getDate() % lines.length];
 }
 function gamebarHTML(pct, msg) {
   const { lvl, into } = levelInfo(), { current } = computeStreaks();
   return `<div class="gb-top">
-      <div class="gb-mascot">${mascotSVG()}</div>
+      <div class="gb-coach"><i class="ti ti-bolt" aria-hidden="true"></i></div>
       <div class="gb-bubble">${esc(msg)}</div>
-      <div class="gb-ring" style="background:conic-gradient(var(--success) ${Math.round(pct * 3.6)}deg, var(--surface-2) 0)"><span class="rc">${pct}%</span></div>
+      <div class="gb-ring" style="background:conic-gradient(var(--fill-accent) ${Math.round(pct * 3.6)}deg, var(--surface-2) 0)"><span class="rc">${pct}%</span></div>
     </div>
     <div class="lvl-row"><div class="lvl-badge">${lvl}</div><div class="xp-bar"><div class="xp-fill" style="width:${into}%"></div></div><span class="xp-txt">${into}/100 XP</span></div>
     <div class="gb-stats">
@@ -1015,7 +1054,7 @@ function gamebarHTML(pct, msg) {
     </div>`;
 }
 function spawnConfetti(container) {
-  const colors = ['#58cc02', '#ffc800', '#ff9600', '#1cb0f6', '#ff86d0'];
+  const colors = ['#ea580c', '#f59e0b', '#ffffff', '#16a34a', '#94a3b8'];
   for (let i = 0; i < 44; i++) {
     const c = document.createElement('div');
     c.className = 'confetti';
@@ -1027,16 +1066,18 @@ function spawnConfetti(container) {
     container.appendChild(c);
   }
 }
-function celebrate() {
+function celebrate(status, pct) {
   const { current } = computeStreaks();
+  const full = status !== 'partial';
+  const xp = Math.round(50 * (pct || 100) / 100);
   const el = document.getElementById('celebrate');
   el.innerHTML = `<div class="celebrate-card">
-      <div class="cmascot">${mascotSVG()}</div>
-      <h2>Workout complete!</h2>
-      <div class="csub">Nice work — that's in the books.</div>
+      <div class="cbolt"><i class="ti ${full ? 'ti-bolt' : 'ti-clock-hour-4'}"></i></div>
+      <h2>${full ? 'Workout logged' : 'Partial logged'}</h2>
+      <div class="csub">${full ? "That's another one in the bank." : 'Progress banked — every bit counts.'}</div>
       <div class="creward">
-        <div class="xp"><div class="cn">+50</div><div class="cl">XP earned</div></div>
-        <div class="streak"><div class="cn">${current} 🔥</div><div class="cl">Day streak</div></div>
+        <div class="xp"><div class="cn">+${xp}</div><div class="cl">XP earned</div></div>
+        <div class="streak"><div class="cn">${current}</div><div class="cl">Day streak</div></div>
       </div>
       <button class="btn primary" id="celebClose">Continue</button>
     </div>`;
@@ -1196,7 +1237,9 @@ const DUR_OPTIONS = [
 let todaySessionKey = 'scheduled';
 
 function isCompleted(d) { return !!store.completions[isoDate(d)]; }
-function setCompleted(d, val) { const k = isoDate(d); if (val) store.completions[k] = true; else delete store.completions[k]; saveStore(); }
+function completionStatus(d) { const v = store.completions[isoDate(d)]; if (!v) return null; if (v === true) return 'full'; return (v.pct || 0) >= 100 ? 'full' : 'partial'; }
+function completionPct(d) { const v = store.completions[isoDate(d)]; if (!v) return 0; if (v === true) return 100; return v.pct || 100; }
+function setCompleted(d, val, meta) { const k = isoDate(d); if (val) store.completions[k] = { pct: (meta && meta.pct) || 100, min: (meta && meta.min) || 30, ts: Date.now() }; else delete store.completions[k]; saveStore(); }
 
 /* ---------- Streaks ---------- */
 function earliestDate() {
@@ -1341,25 +1384,31 @@ function todayProgressPct(session, dateKey, done) {
 }
 function renderToday() {
   const now = new Date(), dateKey = isoDate(now);
-  const done = isCompleted(now);
-  const session = todayOverride || masterDay(now);
-  const w = session.data, isRest = session.kind === 'rest';
-  const pct = todayProgressPct(session, dateKey, done);
+  const done = isCompleted(now), status = completionStatus(now);
+  const base = masterDay(now), isRest = base.kind === 'rest';
+  const session = isRest ? base : scaledSession(base, todayMinutes);
+  const w = session.data;
+  const pct = done ? completionPct(now) : todayProgressPct(session, dateKey, false);
 
   const gb = document.getElementById('streakBanner');
   gb.className = 'gamebar';
-  gb.innerHTML = gamebarHTML(pct, todayMascotMsg(session.kind, done));
+  gb.innerHTML = gamebarHTML(pct, todayMascotMsg(base.kind, done));
 
   document.getElementById('todayDate').textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   document.getElementById('todayMeta').textContent = `Week ${programWeek()} · ${session.focus}`;
 
   const pill = document.getElementById('statusPill');
-  pill.className = 'status-pill' + (isRest ? ' rest' : (done ? ' done' : ''));
-  pill.innerHTML = isRest ? '<i class="ti ti-moon"></i> Rest' : (done ? '<i class="ti ti-circle-check"></i> Done' : '<i class="ti ti-circle"></i> To do');
+  pill.className = 'status-pill' + (isRest ? ' rest' : status === 'full' ? ' done' : status === 'partial' ? ' partial' : '');
+  pill.innerHTML = isRest ? '<i class="ti ti-moon"></i> Rest' : status === 'full' ? '<i class="ti ti-circle-check"></i> Done' : status === 'partial' ? '<i class="ti ti-progress"></i> ' + completionPct(now) + '%' : '<i class="ti ti-circle"></i> To do';
 
-  document.getElementById('durRow').innerHTML = '';
+  const dur = document.getElementById('durRow');
+  if (isRest) dur.innerHTML = '';
+  else {
+    dur.innerHTML = [15, 30, 45, 60].map(mnt => `<button class="dur${mnt === todayMinutes ? ' active' : ''}" data-min="${mnt}">${mnt} min</button>`).join('');
+    dur.querySelectorAll('.dur').forEach(b => b.onclick = () => { todayMinutes = +b.dataset.min; renderToday(); });
+  }
+
   const body = document.getElementById('todayBody');
-
   if (isRest) {
     body.innerHTML = `<div class="card" style="text-align:center;padding:26px 20px">
       <i class="ti ti-bed" style="font-size:34px;color:var(--fill-accent)"></i>
@@ -1370,13 +1419,14 @@ function renderToday() {
     return;
   }
 
-  body.innerHTML = `<div class="today-summary" id="todaySummary"></div>
-     <div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>
-     <button class="complete-btn${done ? ' done' : ''}" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>${done ? "Workout complete!" : "I did it — mark complete"}</button>
-     <div class="swap-note">${todayOverride ? '<a id="backFull">↩ Back to full plan</a>' : 'Short on time? <a id="swapShort">Do a 15-min minimal instead →</a>'}</div>`;
+  const btns = done
+    ? `<button class="complete-btn done" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>${status === 'partial' ? 'Logged ' + completionPct(now) + '% — tap to clear' : 'Workout complete — tap to clear'}</button>`
+    : `<button class="complete-btn" id="completeBtn"><span class="box"><i class="ti ti-check"></i></span>Complete workout</button>
+       <button class="btn" id="partialBtn" style="margin-top:10px"><i class="ti ti-player-pause"></i> Finish early — log partial</button>`;
+
+  body.innerHTML = `<div class="today-summary" id="todaySummary"></div><div class="card">${dayBodyHTML(w, 'today', dateKey)}</div>${btns}`;
   document.getElementById('completeBtn').onclick = () => toggleToday();
-  const sl = document.getElementById('swapShort'); if (sl) sl.onclick = () => { todayOverride = { kind: 'ball', focus: 'Short on time — 15-min minimal', data: workoutPlan.emergencyVersions.minimal15 }; renderToday(); };
-  const bf = document.getElementById('backFull'); if (bf) bf.onclick = () => { todayOverride = null; renderToday(); };
+  const pb = document.getElementById('partialBtn'); if (pb) pb.onclick = () => logPartial(session, dateKey);
   wireToday(dateKey);
 }
 function streakMessage(cur, done, rest) {
@@ -1386,10 +1436,17 @@ function streakMessage(cur, done, rest) {
   return 'Finish today to extend your streak.';
 }
 function toggleToday() {
-  const now = new Date(), willDo = !isCompleted(now);
-  setCompleted(now, willDo);
-  renderToday(); renderCalendar(); renderProgress();
-  if (willDo) celebrate(); else toast('Marked incomplete');
+  const now = new Date();
+  if (isCompleted(now)) { setCompleted(now, false); renderToday(); renderCalendar(); renderProgress(); toast('Cleared'); }
+  else { setCompleted(now, true, { pct: 100, min: todayMinutes }); renderToday(); renderCalendar(); renderProgress(); celebrate('full', 100); }
+}
+function logPartial(session, dateKey) {
+  const now = new Date();
+  const { done, total } = todaySetCounts(session, dateKey);
+  if (done === 0) { toast('Log at least one set first'); return; }
+  const pct = Math.min(99, Math.round(done / total * 100));
+  setCompleted(now, true, { pct, min: todayMinutes });
+  renderToday(); renderCalendar(); renderProgress(); celebrate('partial', pct);
 }
 
 /* ---------- Calendar ---------- */
@@ -1410,7 +1467,8 @@ function renderCalendar() {
     if (done && sched) monthDone++;
     let cls = 'cal-cell';
     if (sameDay(d, today0)) cls += ' today';
-    if (done) cls += ' done'; else if (future) cls += ' future'; else if (!sched) cls += ' rest'; else cls += ' missed';
+    const st = completionStatus(d);
+    if (st === 'full') cls += ' done'; else if (st === 'partial') cls += ' partial'; else if (future) cls += ' future'; else if (!sched) cls += ' rest'; else cls += ' missed';
     html += `<div class="${cls}" data-iso="${isoDate(d)}">${day}${sched && !done && !future ? '<span class="dot"></span>' : ''}</div>`;
   }
   const grid = document.getElementById('calGrid');
@@ -1445,7 +1503,8 @@ function renderProgress() {
     const isToday = d0.getTime() === today0.getTime(), past = d0.getTime() <= today0.getTime();
     if (sched && past) { wkSched++; if (done) wkDone++; }
     let cls = 'day-box';
-    if (done) cls += ' done'; else if (!sched) cls += ' rest'; else if (past && !isToday) cls += ' missed';
+    const st = completionStatus(d);
+    if (st === 'full') cls += ' done'; else if (st === 'partial') cls += ' partial'; else if (!sched) cls += ' rest'; else if (past && !isToday) cls += ' missed';
     if (isToday) cls += ' today';
     grid += `<div class="${cls}"><span class="dl">${letters[i]}</span><span class="dn">${d.getDate()}</span></div>`;
   }
