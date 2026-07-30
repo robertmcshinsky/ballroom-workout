@@ -277,6 +277,57 @@
 
   .foot-note { text-align: center; font-size: 12px; color: var(--text-secondary); padding: 16px 0 4px; }
 
+  /* ===== v7: real-photo thumbs, detail modal, program browser, machines ===== */
+  .ex-thumb .ex-img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; background: #fff; }
+  .ex-thumb { overflow: hidden; }
+
+  .prog-switch { display: flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+  .prog { flex: 1; padding: 9px 6px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .prog.active { background: var(--fill-accent); color: var(--on-accent); }
+
+  .phase-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 12px; }
+  .phase-head { padding: 14px; background: var(--fill-accent-weak); }
+  .phase-head .pn { font-size: 16px; font-weight: 700; letter-spacing: .5px; }
+  .phase-head .pw { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+  .phase-head .psched { font-size: 12px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6; }
+  .phase-body { padding: 12px 14px; }
+  .seq-note { font-size: 12px; color: var(--fill-accent); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin: 10px 0 8px; }
+
+  .ex-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); cursor: pointer; }
+  .ex-row:first-child { border-top: none; }
+  .ex-row .ex-thumb { width: 46px; height: 46px; }
+  .ex-row .er-info { flex: 1; min-width: 0; }
+  .ex-row .er-name { font-size: 14px; font-weight: 700; }
+  .ex-row .er-presc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .ex-row .ti-chevron-right { color: var(--text-secondary); }
+
+  .machine-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; background: var(--surface-1); }
+  .machine-card .mh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .machine-card .mb { font-size: 15px; font-weight: 700; }
+  .machine-card .mm { font-size: 12px; color: var(--text-secondary); font-family: var(--mono); margin-left: auto; }
+
+  /* Detail modal */
+  .modal-back { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50; display: none; align-items: flex-end; justify-content: center; }
+  .modal-back.open { display: flex; animation: fade .2s ease; }
+  .modal { background: var(--surface-1); width: 100%; max-width: 680px; border-radius: 18px 18px 0 0; padding: 16px 16px calc(22px + var(--safe-b)); max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--fill-accent); animation: up .28s cubic-bezier(.2,.9,.3,1); }
+  @keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+  .modal .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 14px; }
+  .ex-detail-title { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  .ex-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .ex-tags .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; text-transform: capitalize; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-secondary); }
+  .ex-tags .tag .ti { font-size: 14px; color: var(--fill-accent); }
+  .ex-presc { font-size: 13px; font-weight: 600; color: var(--fill-accent); background: var(--fill-accent-weak); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start; }
+  .ex-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .ex-photos figure { margin: 0; }
+  .ex-photos img { width: 100%; border-radius: 12px; background: #fff; aspect-ratio: 4/3; object-fit: cover; border: 1px solid var(--border); }
+  .ex-photos figcaption { text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-secondary); margin-top: 4px; }
+  .ex-photos.glyphbig { display: grid; grid-template-columns: 1fr; place-items: center; padding: 20px; background: var(--fill-accent-weak); border-radius: 12px; }
+  .ex-photos.glyphbig .gsvg { width: 72px; height: 72px; }
+  .steps-h { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--fill-accent); margin-bottom: 8px; }
+  ol.steps { margin: 0; padding-left: 20px; }
+  ol.steps li { font-size: 14px; line-height: 1.55; margin-bottom: 8px; }
+  .notetoggle { background: none; }
+
   #equipment-checklist { display: none; }
   @media print {
     header.app-bar, nav.tabbar, .toast { display: none !important; }
@@ -311,8 +362,15 @@
       <div class="acc-body" id="equipBody"></div>
     </details>
 
+    <div class="prog-switch" id="progSwitch">
+      <button class="prog active" data-prog="ballroom">Ballroom</button>
+      <button class="prog" data-prog="jump">Jump Attack</button>
+      <button class="prog" data-prog="machines">Machines</button>
+    </div>
     <div id="libraryBody"></div>
-    <p class="foot-note">Illustrations render offline — no external images.</p>
+    <div id="jumpBody" style="display:none"></div>
+    <div id="machinesBody" style="display:none"></div>
+    <p class="foot-note">Tap any exercise for demo photos, step-by-step instructions & muscles worked.</p>
   </section>
 
   <!-- ============ TODAY ============ -->
@@ -418,6 +476,7 @@
   <button class="tab" data-view="progress"><i class="ti ti-chart-bar"></i>Progress</button>
 </nav>
 
+<div class="modal-back" id="exBack"><div class="modal" id="exModal"></div></div>
 <div id="equipment-checklist"></div>
 <div class="toast" id="toast"></div>
 
@@ -425,7 +484,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '6.0.0';
+const APP_VERSION = '7.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -548,6 +607,207 @@ function kindFor(n) {
 }
 function glyphSVG(kind) { return `<svg viewBox="0 0 48 48" class="gsvg" aria-hidden="true">${GLYPHS[kind] || GLYPHS.core}</svg>`; }
 
+/* ---------- Exercise how-to database (photos + muscles + steps) ---------- */
+const CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/';
+const EXDB = {
+  "Band pull-aparts": { m: "shoulders, upper back", i: ["Band_Pull_Apart/0.jpg", "Band_Pull_Apart/1.jpg"], s: ["Hold a band at chest height, arms straight out in front, hands shoulder-width.", "Pull the band apart by sweeping your arms out wide, squeezing your shoulder blades together.", "Return slowly to the start with control. Keep ribs down and core braced."] },
+  "Single-leg Romanian deadlifts": { m: "hamstrings, glutes", i: ["Romanian_Deadlift/0.jpg", "Romanian_Deadlift/1.jpg"], s: ["Stand on one leg with a soft knee, weight in the opposite hand.", "Hinge at the hip, reaching the weight down as the free leg extends straight behind you.", "Keep your back flat and hips square. Drive through the standing heel to return upright."] },
+  "Dead bugs": { m: "abs, core", i: ["Dead_Bug/0.jpg", "Dead_Bug/1.jpg"], s: ["Lie on your back, arms reaching up, knees bent 90° over your hips.", "Press your low back into the floor. Slowly extend the opposite arm and leg toward the floor.", "Return under control and switch sides. Don't let your back arch."] },
+  "Pallof press": { m: "abs, obliques", i: ["Pallof_Press/0.jpg", "Pallof_Press/1.jpg"], s: ["Stand side-on to a cable or band anchor, holding the handle at your chest.", "Brace your core and press the handle straight out in front of you.", "Resist the pull that tries to rotate you. Hold, then return to the chest."] },
+  "Glute bridges": { m: "glutes, hamstrings", i: ["Barbell_Glute_Bridge/0.jpg", "Barbell_Glute_Bridge/1.jpg"], s: ["Lie on your back, knees bent, feet flat and hip-width.", "Drive through your heels and lift your hips to a straight line from knees to shoulders.", "Squeeze your glutes hard at the top, then lower with control."] },
+  "Glute bridge marches": { m: "glutes, core", i: ["Barbell_Glute_Bridge/0.jpg", "Barbell_Glute_Bridge/1.jpg"], s: ["Set up in a glute bridge with hips lifted to a straight line.", "Keeping hips level, lift one foot a few inches off the floor.", "Lower and alternate. Don't let either hip drop."] },
+  "Landmine rotations": { m: "obliques, core", i: ["Landmine_180s/0.jpg", "Landmine_180s/1.jpg"], s: ["Hold the end of a barbell with both hands, arms extended at chest height.", "Feet planted, rotate your torso to swing the bar from side to side.", "Move from the core, not the arms. Control the arc both directions."] },
+  "Banded lateral walks": { m: "glutes, abductors", i: ["Monster_Walk/0.jpg", "Monster_Walk/1.jpg"], s: ["Loop a band above the knees and drop into a quarter-squat.", "Step sideways, keeping constant tension on the band.", "Take controlled steps one direction, then back the other way."] },
+  "Offset loaded carries": { m: "core, forearms", i: ["Farmers_Walk/0.jpg", "Farmers_Walk/1.jpg"], s: ["Hold one dumbbell at your side, standing tall.", "Brace your core against the uneven load and walk forward with an upright posture.", "Don't lean. Switch hands for the other side."] },
+  "Copenhagen side-lying adduction": { m: "adductors, core", i: ["Band_Hip_Adductions/0.jpg", "Band_Hip_Adductions/1.jpg"], s: ["Lie on your side, bottom leg straight, top leg bent and resting in front.", "Press the bottom (straight) leg's inner thigh down toward the floor and lift.", "Control the lower. Keep hips stacked. Switch sides."] },
+  "Calf raises": { m: "calves", i: ["Seated_Calf_Raise/0.jpg", "Seated_Calf_Raise/1.jpg"], s: ["Stand tall (weight optional across shoulders or in hand).", "Rise up onto the balls of your feet as high as possible.", "Pause at the top, then lower your heels slowly for a full stretch."] },
+  "Fire Hydrants": { m: "glutes, hips", i: [], s: ["Start on hands and knees, back flat, core tight.", "Keeping the knee bent, lift one leg out to the side without tilting your hips.", "Add the sequence: forward circles, backward circles, then straight side lifts — 10 each, then switch legs."] },
+  "Hip Flexor Stretch": { m: "hip flexors, quads", i: [], s: ["Kneel in a lunge with the front foot on a small plate, back knee down.", "Tuck your pelvis and press your hips forward until you feel the front-of-hip stretch.", "Optionally pull the back foot toward your glute. Hold 30s each side."] },
+  "Squats": { m: "quads, glutes", i: ["Barbell_Squat/0.jpg", "Barbell_Squat/1.jpg"], s: ["Feet shoulder-width, bar racked on your upper back (heels on a plate for Jump Attack).", "Push your hips back and bend your knees until thighs reach parallel.", "Drive up through your heels, keeping your chest tall and core braced."] },
+  "Reverse Lunge": { m: "quads, glutes", i: ["Crossover_Reverse_Lunge/0.jpg", "Crossover_Reverse_Lunge/1.jpg"], s: ["Stand tall, weights at your sides (front foot on a plate for the elevated version).", "Step one foot back and lower until the front thigh is parallel, back knee near the floor.", "Hold if prescribed, then drive through the front heel to stand. Switch legs."] },
+  "Elevated Bulgarian Lunges": { m: "quads, glutes", i: ["Crossover_Reverse_Lunge/0.jpg", "Crossover_Reverse_Lunge/1.jpg"], s: ["Rest your back foot on a bench, front foot forward on a plate.", "Lower straight down until the front thigh passes parallel, torso tall.", "Press back up through the front heel. Keep the movement vertical, not forward."] },
+  "Straight-Legged Dead Lifts": { m: "hamstrings, glutes", i: ["Wide_Stance_Stiff_Legs/0.jpg", "Wide_Stance_Stiff_Legs/1.jpg"], s: ["Hold a bar or dumbbells, legs nearly straight, soft knees.", "Push your hips back and lower the weight along your legs with a flat back.", "Feel the hamstring stretch, then squeeze your glutes to stand tall."] },
+  "Dead Lift": { m: "glutes, back, hamstrings", i: ["Barbell_Deadlift/0.jpg", "Barbell_Deadlift/1.jpg"], s: ["Stand mid-foot under the bar, grip just outside your knees, flat back.", "Drive through the floor with your legs and hips, keeping the bar close to your body.", "Stand tall, then reverse the path under control. Add weight each set."] },
+  "V-Up Hold": { m: "abs, core", i: ["Side_Jackknife/0.jpg", "Side_Jackknife/1.jpg"], s: ["From an inverted-V on hands and toes, tuck your chin and squeeze your glutes.", "Hold that position for the prescribed time (the 'Hold').", "For the 'Pump', lower and raise your heels a few inches without losing the V."] },
+  "Tuck Jumps": { m: "quads, calves, power", i: ["Knee_Tuck_Jump/0.jpg", "Knee_Tuck_Jump/1.jpg"], s: ["Quick dip for momentum, then jump straight up for maximum height.", "Pull your knees up toward your chest at the peak.", "Land softly with hips above your knees, and immediately reset for the next rep."] },
+  "Seated Box Jumps": { m: "glutes, quads, power", i: ["Front_Box_Jump/0.jpg", "Front_Box_Jump/1.jpg"], s: ["Sit tall on a bench facing a box, feet flat.", "Without rocking back, swing your arms and explode up onto the box.", "Land softly on the balls of your feet in a partial squat, then stand."] },
+  "Burpee Dead Lifts": { m: "full body, power", i: ["Barbell_Deadlift/0.jpg", "Barbell_Deadlift/1.jpg"], s: ["Hold a straight-arm plank on the barbell for the prescribed time.", "Jump your feet up to the bar, then stand up into a deadlift driving through legs and hips.", "Reverse the motion back to the plank and repeat."] },
+  "Push-up Hold": { m: "chest, triceps, core", i: ["Pushups/0.jpg", "Pushups/1.jpg"], s: ["Hands under shoulders in a plank, body in a straight line.", "Lower until your chest is about an inch off the floor and hold for the prescribed time.", "For 'w/reps' versions, add slow full push-ups after the hold."] },
+  "Tricep Push-up Hold": { m: "triceps, chest", i: ["Close-Grip_Push-Up_off_of_a_Dumbbell/0.jpg", "Close-Grip_Push-Up_off_of_a_Dumbbell/1.jpg"], s: ["Set up in a forearm/close-grip plank, elbows tucked to your sides.", "Hold your forearms a couple inches off the floor, back flat, for the prescribed time.", "Keep abs and glutes tight throughout."] },
+  "Elevated Pike Push-ups": { m: "shoulders, triceps", i: ["Handstand_Push-Ups/0.jpg", "Handstand_Push-Ups/1.jpg"], s: ["Feet elevated on a box, hands on the floor, hips high in a pike.", "Bend your elbows to lower the crown of your head toward the floor.", "Press back up to the pike. Keep hips high the whole time."] },
+  "Pull-up Hold": { m: "back, biceps", i: ["Pullups/0.jpg", "Pullups/1.jpg"], s: ["Grip the bar slightly wider than shoulders, overhand.", "Pull up until your chin clears the bar and hold for the prescribed time.", "For the release combo, switch between overhand and underhand grips each rep."] },
+  "Overhead Hold": { m: "shoulders", i: ["Cable_Shoulder_Press/0.jpg", "Cable_Shoulder_Press/1.jpg"], s: ["Press a bar or dumbbells straight overhead, elbows locked.", "Squeeze your glutes and brace your core, holding for the prescribed time.", "Add slow presses after the hold for 'w/reps' versions."] },
+  "Clean to Overhead Press": { m: "shoulders, full body", i: ["Clean_and_Press/0.jpg", "Clean_and_Press/1.jpg"], s: ["From the bar at your thighs with knees bent, snap it up to your shoulders.", "Drive through your hips and explode the weight overhead to a locked-out press.", "Reverse to the shoulders and down. Add weight each set."] },
+  "Bicep Hold": { m: "biceps", i: ["Dumbbell_Bicep_Curl/0.jpg", "Dumbbell_Bicep_Curl/1.jpg"], s: ["Hold dumbbells with palms forward, curl to just past halfway.", "Hold there, elbows pinned to your sides, for the prescribed time.", "For 'w/reps', add full curls after the hold."] },
+  "Frog Plank Hold": { m: "abs, core", i: ["Plank/0.jpg", "Plank/1.jpg"], s: ["Start in a forearm or hand plank, body straight.", "Drive one knee up and across toward the same-side elbow, thigh elevated, and hold.", "Alternate legs for the reps version. Keep hips level."] },
+  "Side Plank Hold": { m: "obliques, core", i: ["Side_Bridge/0.jpg", "Side_Bridge/1.jpg"], s: ["Stack on one forearm, body in a straight side line, top arm overhead.", "Lift your hips and hold for the prescribed time.", "For the power version, rotate and reach the top arm under your chest each rep. Switch sides."] },
+  "Pec Fly": { m: "chest", i: ["Cable_Crossover/0.jpg", "Cable_Crossover/1.jpg"], s: ["Sit with your back against the pad, grip the handles palms-forward.", "Sweep your arms together in front of you, leading with the elbows.", "Return slowly, feeling the chest stretch. (Hoist HD-3900)"] },
+  "Rear Delt": { m: "rear delts, upper back", i: ["Cable_Rear_Delt_Fly/0.jpg", "Cable_Rear_Delt_Fly/1.jpg"], s: ["Sit with your chest against the pad, overhand grip on the handles.", "Pull the handles back and out, squeezing your shoulder blades.", "Return under control. (Hoist HD-3900)"] },
+  "Leg Press": { m: "quads, glutes", i: ["Leg_Press/0.jpg", "Leg_Press/1.jpg"], s: ["Sit with your back on the pad, feet on the platform shoulder-width.", "Press the platform away to a near-full extension without locking the knees.", "Lower under control to a 90° knee bend. (Hoist HD-3403)"] },
+  "Preacher Curl": { m: "biceps", i: ["Preacher_Curl/0.jpg", "Preacher_Curl/1.jpg"], s: ["Rest your upper arms on the pad, underhand grip on the handle.", "Curl the handle up by contracting the biceps, elbows fixed.", "Lower slowly to a full stretch. (Hoist HD-3100)"] },
+  "Triceps Extension": { m: "triceps", i: ["Triceps_Pushdown/0.jpg", "Triceps_Pushdown/1.jpg"], s: ["Grip the handles, elbows in at your sides.", "Press down/out to full extension, squeezing the triceps.", "Return slowly under control. (Hoist HD-3100)"] },
+  "Cat-cow stretch": { m: "spine mobility", i: [], s: ["On hands and knees, inhale and drop your belly, lifting your chest and tailbone (cow).", "Exhale and round your spine toward the ceiling, tucking your chin (cat).", "Flow slowly between the two with your breath."] },
+  "90/90 hip stretch": { m: "hips", i: [], s: ["Sit with both knees bent 90°, one leg in front and one out to the side.", "Keep your chest tall and gently lean over the front shin.", "Hold, then switch sides."] },
+  "Couch stretch": { m: "hip flexors, quads", i: [], s: ["Place your back foot up a wall or couch, front foot planted in a lunge.", "Tuck your pelvis and rise tall until you feel the front-of-hip and quad stretch.", "Hold, breathing steadily, then switch sides."] },
+  "T-spine rotation": { m: "thoracic mobility", i: [], s: ["On hands and knees (or side-lying), place one hand behind your head.", "Rotate that elbow open toward the ceiling, following it with your eyes.", "Return and repeat, then switch sides."] },
+  "Single-leg balance holds": { m: "balance, ankles", i: [], s: ["Stand tall on one leg with a soft knee.", "Hold your balance for the prescribed time; progress by closing your eyes.", "Switch legs."] },
+  "Calf Stretch": { m: "calves", i: [], s: ["Place the ball of one foot on a raised plate, heel hanging off.", "Lower the heel until you feel a calf stretch; hold without bouncing.", "Switch sides."] },
+  "Mobility": { m: "mobility", i: [], s: ["Move slowly through your range of motion.", "Breathe and avoid bouncing.", "Spend the prescribed time on each area."] }
+};
+function exKey(n) {
+  n = (n || '').toLowerCase();
+  const R = [
+    [/glute bridge march/, "Glute bridge marches"], [/glute bridge/, "Glute bridges"],
+    [/band pull|pull-apart|rear delt fly/, "Band pull-aparts"],
+    [/single-?leg romanian/, "Single-leg Romanian deadlifts"],
+    [/straight-?legged dead|stiff/, "Straight-Legged Dead Lifts"],
+    [/dead bug/, "Dead bugs"], [/pallof/, "Pallof press"], [/landmine/, "Landmine rotations"],
+    [/lateral walk|monster walk/, "Banded lateral walks"], [/carr(y|ies)|farmer|suitcase/, "Offset loaded carries"],
+    [/copenhagen|adduction/, "Copenhagen side-lying adduction"],
+    [/weighted calf|calf raise/, "Calf raises"], [/calf stretch/, "Calf Stretch"],
+    [/fire hydrant|bridge walkout/, "Fire Hydrants"], [/hip flexor/, "Hip Flexor Stretch"],
+    [/bulgarian/, "Elevated Bulgarian Lunges"],
+    [/tiptoe squat|sitting squat|squat/, "Squats"],
+    [/reverse lunge|lunge/, "Reverse Lunge"],
+    [/v-?up|v-?calf/, "V-Up Hold"], [/burpee/, "Burpee Dead Lifts"],
+    [/box jump|depth jump/, "Seated Box Jumps"], [/tuck jump|buttkicker|scissors|bronco/, "Tuck Jumps"],
+    [/tricep push/, "Tricep Push-up Hold"], [/clap push|push-?up|pushup/, "Push-up Hold"],
+    [/pike push/, "Elevated Pike Push-ups"], [/pull-?up|chin-?up/, "Pull-up Hold"],
+    [/clean/, "Clean to Overhead Press"], [/overhead/, "Overhead Hold"], [/bicep/, "Bicep Hold"],
+    [/frog plank/, "Frog Plank Hold"], [/side plank/, "Side Plank Hold"],
+    [/balance/, "Single-leg balance holds"],
+    [/pec fly/, "Pec Fly"], [/rear delt/, "Rear Delt"], [/leg press/, "Leg Press"],
+    [/preacher/, "Preacher Curl"], [/triceps? (extension|pushdown)/, "Triceps Extension"],
+    [/cat-?cow/, "Cat-cow stretch"], [/90.?90|hip stretch/, "90/90 hip stretch"],
+    [/couch stretch/, "Couch stretch"], [/t-?spine|spinal rot/, "T-spine rotation"],
+    [/stretch|mobility/, "Mobility"]
+  ];
+  for (const [re, k] of R) if (re.test(n)) return k;
+  return null;
+}
+function howtoFor(ex) {
+  const name = typeof ex === 'string' ? ex : ex.name;
+  const k = exKey(name), d = k && EXDB[k];
+  const imgs = d && d.i && d.i.length ? d.i.map(p => CDN + p) : [];
+  const muscles = (d && d.m) || (typeof ex === 'object' && ex.muscles) || '';
+  const steps = (d && d.s) || (typeof ex === 'object' && (ex.formNote || ex.intensity) ? [ex.formNote || ex.intensity] : []);
+  const equipment = typeof ex === 'object' && ex.equipment ? ex.equipment.join(', ') : '';
+  return { imgs, muscles, steps, equipment, name };
+}
+function thumbErr(img) { const k = img.dataset.kind; img.insertAdjacentHTML('afterend', glyphSVG(k)); img.remove(); }
+function thumbHTML(ex) {
+  const h = howtoFor(ex), kind = kindFor(ex.name);
+  if (h.imgs.length) return `<img class="ex-img" loading="lazy" alt="" data-kind="${kind}" src="${h.imgs[0]}" onerror="thumbErr(this)">`;
+  return glyphSVG(kind);
+}
+function openExDetail(name, presc) {
+  const h = howtoFor(name);
+  const photos = h.imgs.length
+    ? `<div class="ex-photos">${h.imgs.map((u, i) => `<figure><img loading="lazy" alt="" src="${u}" onerror="this.closest('figure').remove()"><figcaption>${i === 0 ? 'Start' : 'Finish'}</figcaption></figure>`).join('')}</div>`
+    : `<div class="ex-photos glyphbig">${glyphSVG(kindFor(name))}</div>`;
+  const steps = h.steps.length ? `<ol class="steps">${h.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : `<p class="muted" style="font-size:14px">Follow the demonstration above.</p>`;
+  let tags = '';
+  if (h.muscles) tags += `<span class="tag"><i class="ti ti-target-arrow"></i> ${esc(h.muscles)}</span>`;
+  if (h.equipment) tags += `<span class="tag"><i class="ti ti-barbell"></i> ${esc(h.equipment)}</span>`;
+  document.getElementById('exModal').innerHTML =
+    `<div class="grab"></div><h3 class="ex-detail-title">${esc(name)}</h3>
+     ${tags ? `<div class="ex-tags">${tags}</div>` : ''}
+     ${presc ? `<div class="ex-presc"><i class="ti ti-list-numbers"></i><span>${esc(presc)}</span></div>` : ''}
+     ${photos}<div class="steps-h">How to</div>${steps}`;
+  document.getElementById('exBack').classList.add('open');
+}
+function closeExDetail() { document.getElementById('exBack').classList.remove('open'); }
+
+/* ---------- Jump Attack program ---------- */
+const JA = {
+  rules: ["Leg days: Day 1 start right, Day 4 start left. Total-Body: Day 2 right, Day 5 left.", "Rest 1 min between exercises, 2 min between sets.", "Add weight each set/week with good form. All jumps = max height."],
+  phases: [
+    { name: "PHASE 1 · FIRE", weeks: "Weeks 1–4", focus: "Foundation — long holds. Wk4 = recovery.",
+      legLabel: "Relentless Legs · Day 1 & 4", legNote: "Each: warm-up → Hold/Pump superset ×3 → stretch. Holds Wk1 60s / Wk2 90s / Wk3 120s; Pumps 15/10/5.",
+      seqs: [
+        { n: 1, ex: [["Fire Hydrants", "10 fwd / back / side each leg"], ["Tiptoe Squat Hold", "Wk1 60s / Wk2 90s / Wk3 120s"], ["Tiptoe Squat Pump", "15 / 10 / 5 reps · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 2, ex: [["Fire Hydrants", "10/10/10 each leg"], ["Lunge Hold", "60 / 90 / 120s"], ["Lunge Pump", "15 / 10 / 5 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 3, ex: [["Fire Hydrants", "10/10/10 each leg"], ["Elevated Bulgarian Lunge Hold", "60 / 90 / 120s"], ["Elevated Bulgarian Lunge Pump", "15 / 10 / 5 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 4, ex: [["Fire Hydrants", "10/10/10 each leg"], ["Straight-Legged Dead Lift Hold", "60 / 90 / 120s"], ["Straight-Legged Dead Lift Pump", "15 / 10 / 5 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 5, ex: [["Fire Hydrants", "10/10/10 each leg"], ["V-Up Hold", "60 / 90 / 120s"], ["V-Up Pump", "15 / 10 / 5 · alt ×3"], ["V-Calf Stretch", "30s each side"]] }
+      ],
+      tbLabel: "Relentless Total Body · Day 2 & 5", tbNote: "Hold each Wk1 30s / Wk2 60s / Wk3 90s.",
+      tb: [["Push-up Hold", "30 / 60 / 90s"], ["Pull-up Hold", "30 / 60 / 90s"], ["Overhead Hold", "30 / 60 / 90s"], ["Bicep Hold", "30 / 60 / 90s"], ["Tricep Push-up Hold", "30 / 60 / 90s"], ["Frog Plank Hold", "30 / 60 / 90s"], ["Side Plank Hold", "30 / 60 / 90s each side ×3"]] },
+    { name: "PHASE 2 · FORCE", weeks: "Weeks 5–8", focus: "Power — hold + reps. Wk8 = recovery.",
+      legLabel: "Power Legs · Day 1 & 4", legNote: "Warm-up (Glute Bridge) → strength (hold Wk5 30s / Wk6 20s / Wk7 10s + reps) alt with a jump ×3 → stretch.",
+      seqs: [
+        { n: 6, ex: [["Glute Bridge", "15 each side"], ["Sitting Squats", "hold 30/20/10s + 10 reps"], ["Lunge Buttkickers", "10 / 8 / 6 each side · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 7, ex: [["Glute Bridge", "15 each side"], ["Reverse Lunge", "hold 30/20/10s + 10 reps/leg"], ["Tuck Jumps", "10 / 8 / 6 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 8, ex: [["Glute Bridge", "15 each side"], ["Burpee Dead Lifts", "plank 30/20/10s + 10 reps"], ["Seated Box Jumps", "10 / 8 / 6 (rising box)· alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 9, ex: [["Glute Bridge", "15 each side"], ["Straight-Legged Dead Lifts", "hold 30/20/10s + 10 reps"], ["One-Legged Buttkickers", "10 / 8 / 6 each side · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 10, ex: [["Glute Bridge", "15 each side"], ["Weighted Calf Raises", "hold 30/20/10s + 15 reps · 3 sets"], ["Calf Stretch", "30s each side"]] }
+      ],
+      tbLabel: "Power Total Body · Day 2 & 5", tbNote: "Hold Wk5 30s / Wk6 60s / Wk7 90s, then 10 reps.",
+      tb: [["Push-up Hold w/10 Reps", "hold + 10"], ["Pull-up Hold w/10 Reps", "hold + 10"], ["Overhead Hold w/10 Reps", "hold + 10"], ["Bicep Hold w/10 Reps", "hold + 10"], ["Tricep Push-up Hold w/10 Reps", "hold + 10"], ["Frog Plank Hold w/10 Reps", "hold + 10"], ["Side Plank Hold w/10 Reps", "hold + 10 each side ×3"]] },
+    { name: "PHASE 3 · FLIGHT", weeks: "Weeks 9–12", focus: "Explosive — max reps for time. Wk12 = recovery.",
+      legLabel: "Explosive Legs · Day 1 & 4", legNote: "Warm-up combo → strength (max reps Wk9 30s / Wk10 20s / Wk11 15s) alt with a jump ×3 → stretch.",
+      seqs: [
+        { n: 11, ex: [["Fire Hydrant/Bridge Walkout Combo", "10/10/10 + walkouts ×3"], ["Dead Lift", "max reps 30/20/15s"], ["Alternating Buttkicker Scissors", "10 / 8 / 6 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 12, ex: [["Fire Hydrant/Bridge Walkout Combo", "10/10/10 + walkouts ×3"], ["Squats", "max reps 30/20/15s"], ["Back Roll Tuck Jumps", "10 / 8 / 6 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 13, ex: [["Fire Hydrant/Bridge Walkout Combo", "10/10/10 + walkouts ×3"], ["Elevated Bulgarian Lunges", "max reps 30/20/15s each side"], ["Bronco Kick Tuck Jumps", "10 / 8 / 6 · alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 14, ex: [["Fire Hydrant/Bridge Walkout Combo", "10/10/10 + walkouts ×3"], ["Straight-Legged Dead Lifts", "max reps 30/20/15s"], ["Attack Depth Jumps", "5 / 4 / 3 (rising box)· alt ×3"], ["Hip Flexor Stretch", "30s each side"]] },
+        { n: 15, ex: [["Fire Hydrant/Bridge Walkout Combo", "10/10/10 + walkouts ×3"], ["Weighted Calf Raises", "max reps 30/20/15s · 3 sets"], ["Calf Stretch", "30s each side"]] }
+      ],
+      tbLabel: "Explosive Total Body · Day 2 & 5", tbNote: "Max reps for 30s each; add reps every week.",
+      tb: [["Clap Push-ups", "max reps 30s"], ["Pull-up/Chin-up Release Combo", "max reps 30s"], ["Clean to Overhead Press", "max reps 30s"], ["Bicep Curl", "max reps 30s"], ["Elevated Pike Push-ups", "max reps 30s"], ["Alternating Frog Plank", "max reps 30s"], ["Power Side Plank", "max reps 30s each side ×3"]] }
+  ]
+};
+const MACHINES = [
+  { brand: "Hoist", model: "HD-3900", stations: [["Pec Fly", "Chest"], ["Rear Delt", "Upper back"]] },
+  { brand: "Hoist", model: "HD-3403", stations: [["Leg Press", "Quadriceps"], ["Calf raises", "Calves"]] },
+  { brand: "Hoist", model: "HD-3100", stations: [["Preacher Curl", "Biceps"], ["Triceps Extension", "Triceps"]] }
+];
+function exRowHTML(name, presc) {
+  return `<div class="ex-row" data-exdetail="${encodeURIComponent(name)}" data-presc="${encodeURIComponent(presc || '')}">
+    <div class="ex-thumb">${thumbHTML({ name })}</div>
+    <div class="er-info"><div class="er-name">${esc(name)}</div>${presc ? `<div class="er-presc">${esc(presc)}</div>` : ''}</div>
+    <i class="ti ti-chevron-right" aria-hidden="true"></i></div>`;
+}
+function renderJumpAttack() {
+  let html = `<div class="card tight" style="font-size:12px;color:var(--text-secondary)"><b style="color:var(--text-primary)">12-week program · 3 phases.</b><br>${JA.rules.map(esc).join('<br>')}</div>`;
+  JA.phases.forEach(p => {
+    html += `<div class="phase-card"><div class="phase-head"><div class="pn">${esc(p.name)}</div><div class="pw">${esc(p.weeks)} · ${esc(p.focus)}</div></div><div class="phase-body">`;
+    html += `<div class="seq-note">${esc(p.legLabel)}</div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">${esc(p.legNote)}</div>`;
+    p.seqs.forEach(sq => {
+      html += `<details class="acc"><summary><span class="acc-t">Sequence ${sq.n}</span><i class="ti ti-chevron-down acc-chev"></i></summary><div class="acc-body">${sq.ex.map(e => exRowHTML(e[0], e[1])).join('')}</div></details>`;
+    });
+    html += `<div class="seq-note">${esc(p.tbLabel)}</div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">${esc(p.tbNote)}</div>`;
+    html += p.tb.map(e => exRowHTML(e[0], e[1])).join('');
+    html += `</div></div>`;
+  });
+  document.getElementById('jumpBody').innerHTML = html;
+}
+function renderMachines() {
+  let html = `<div class="card tight" style="font-size:12px;color:var(--text-secondary)">Your gym's Hoist Dual Series machines. Tap a station for the demo and steps.</div>`;
+  MACHINES.forEach(m => {
+    html += `<div class="machine-card"><div class="mh"><span class="mb">${esc(m.brand)}</span><span class="mm">${esc(m.model)}</span></div>${m.stations.map(s => exRowHTML(s[0], 'Main muscles: ' + s[1])).join('')}</div>`;
+  });
+  document.getElementById('machinesBody').innerHTML = html;
+}
+function wireProgSwitch() {
+  document.querySelectorAll('#progSwitch .prog').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#progSwitch .prog').forEach(x => x.classList.toggle('active', x === b));
+    const p = b.dataset.prog;
+    document.getElementById('libraryBody').style.display = p === 'ballroom' ? '' : 'none';
+    document.getElementById('equipAcc').style.display = p === 'ballroom' ? '' : 'none';
+    document.getElementById('jumpBody').style.display = p === 'jump' ? '' : 'none';
+    document.getElementById('machinesBody').style.display = p === 'machines' ? '' : 'none';
+    window.scrollTo({ top: 0 });
+  });
+}
+function wireExDetail() {
+  document.getElementById('exBack').addEventListener('click', e => { if (e.target.id === 'exBack') closeExDetail(); });
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-exdetail]');
+    if (el) openExDetail(decodeURIComponent(el.dataset.exdetail), el.dataset.presc ? decodeURIComponent(el.dataset.presc) : '');
+  });
+}
+
 /* ---------- Stores ---------- */
 const STORE_KEY = 'ballroom.tracker.v2';
 function loadStore() { try { const r = localStorage.getItem(STORE_KEY); return r ? JSON.parse(r) : { completions: {} }; } catch (e) { return { completions: {} }; } }
@@ -637,8 +897,7 @@ function equipHTML(ex) { return ex.equipment && ex.equipment.length ? `<div clas
 
 function exerciseLibHTML(ex) {
   const reps = ex.reps ? `<span class="ex-target">${esc(ex.reps)}</span>` : '';
-  const note = (ex.formNote || ex.intensity) ? `<div class="ex-note" style="display:block">${esc(ex.formNote || ex.intensity)}</div>` : '';
-  return `<div class="ex"><div class="ex-thumb">${glyphSVG(kindFor(ex.name))}</div><div class="ex-info"><div class="ex-head"><span class="ex-name">${esc(ex.name)}</span>${reps}</div>${equipHTML(ex)}${note}</div></div>`;
+  return `<div class="ex" data-exdetail="${encodeURIComponent(ex.name)}"><div class="ex-thumb">${thumbHTML(ex)}</div><div class="ex-info"><div class="ex-head"><span class="ex-name">${esc(ex.name)}</span>${reps}<button class="notetoggle" aria-label="How to"><i class="ti ti-info-circle"></i></button></div>${equipHTML(ex)}</div></div>`;
 }
 function stepperHTML(field, label, val) {
   return `<div class="stepper" data-field="${field}"><button data-dec aria-label="decrease ${label}">−</button><div class="mid"><span class="stlbl">${label}</span><span class="stval">${esc(String(val))}</span></div><button data-inc aria-label="increase ${label}">+</button></div>`;
@@ -658,11 +917,8 @@ function logbarHTML(ex, count, dateKey) {
 }
 function exerciseTodayHTML(ex, rounds, dateKey) {
   const badge = ex.reps ? `<span class="ex-target">${esc(ex.reps)}</span>` : '';
-  const note = ex.formNote || ex.intensity;
-  const noteToggle = note ? `<button class="notetoggle" data-note aria-label="Show tip"><i class="ti ti-info-circle"></i></button>` : '';
-  const noteHTML = note ? `<div class="ex-note">${esc(note)}</div>` : '';
   const log = ex.loggable ? logbarHTML(ex, Math.max(1, rounds), dateKey) : '';
-  return `<div class="exercise-card"><div class="ex"><div class="ex-thumb">${glyphSVG(kindFor(ex.name))}</div><div class="ex-info"><div class="ex-head"><span class="ex-name" data-note>${esc(ex.name)}</span>${badge}${noteToggle}</div>${equipHTML(ex)}${noteHTML}</div></div>${log}</div>`;
+  return `<div class="exercise-card"><div class="ex" data-exdetail="${encodeURIComponent(ex.name)}"><div class="ex-thumb">${thumbHTML(ex)}</div><div class="ex-info"><div class="ex-head"><span class="ex-name">${esc(ex.name)}</span>${badge}<button class="notetoggle" aria-label="How to"><i class="ti ti-info-circle"></i></button></div>${equipHTML(ex)}</div></div>${log}</div>`;
 }
 function blockHTML(b, mode, dateKey) {
   const head = (b.title || b.time) ? `<div class="block-head">${b.title ? `<span class="block-title">${esc(b.title)}</span>` : ''}${b.time ? `<span class="block-time">${esc(b.time)}</span>` : ''}</div>` : '';
@@ -959,6 +1215,10 @@ applyTheme(store.theme || null);
 document.getElementById('verTag').textContent = 'v' + APP_VERSION;
 renderEquipment();
 renderWorkouts();
+renderJumpAttack();
+renderMachines();
+wireProgSwitch();
+wireExDetail();
 renderToday();
 renderCalendar();
 renderProgress();

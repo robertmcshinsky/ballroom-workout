@@ -1,0 +1,148 @@
+{
+  "_note": "Transcribed from user's photos of 'Jump Attack' by Tim S. Grover + gym machine placards. Factual workout data (names, sets/reps/holds, schedule) for personal tracking. Form cues are original paraphrases, not book text.",
+  "jumpAttack": {
+    "name": "Jump Attack (Tim Grover)",
+    "durationWeeks": 12,
+    "globalRules": [
+      "Leg days: Day 1 start right leg/side, Day 4 start left.",
+      "Total Body days: Day 5 start left, Day 2 start right.",
+      "Rest 1 min between exercises, 2 min between sets.",
+      "Increase weight each set/week while keeping form.",
+      "All jumps are for maximum height, not speed."
+    ],
+    "phases": [
+      {
+        "name": "FIRE", "weeks": "1-4", "focus": "Foundation / relentless holds",
+        "schedule": { "Day1": "Relentless Legs (Seq 1-5)", "Day2": "Relentless Total Body", "Day3": "Rest", "Day4": "Relentless Legs (Seq 1-5)", "Day5": "Relentless Total Body", "Day6": "Rest", "Day7": "Rest", "Week4": "Recovery week (all days)" },
+        "holdProgression": "Holds: Wk1 60s, Wk2 90s, Wk3 120s. Total-body holds: Wk1 30s, Wk2 60s, Wk3 90s.",
+        "legSequences": [
+          { "n": 1, "exercises": [
+            { "name": "Fire Hydrants", "prescription": "10 fwd / 10 back / 10 side each leg, 1 set", "equipment": "mat" },
+            { "name": "Tiptoe Squat Hold", "prescription": "Wk1 60s / Wk2 90s / Wk3 120s", "equipment": "bodyweight" },
+            { "name": "Tiptoe Squat Pump", "prescription": "Wk1 15 / Wk2 10 / Wk3 5 reps", "equipment": "bodyweight", "superset": "alternate Hold+Pump x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "1-2in plate" } ] },
+          { "n": 2, "exercises": [
+            { "name": "Fire Hydrants", "prescription": "10/10/10 each leg", "equipment": "mat" },
+            { "name": "Lunge Hold", "prescription": "Wk1 60s / Wk2 90s / Wk3 120s", "equipment": "1-2in plate" },
+            { "name": "Lunge Pump", "prescription": "Wk1 15 / Wk2 10 / Wk3 5", "equipment": "1-2in plate", "superset": "alternate Hold+Pump x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "1-2in plate" } ] },
+          { "n": 3, "exercises": [
+            { "name": "Fire Hydrants", "prescription": "10/10/10 each leg", "equipment": "mat" },
+            { "name": "Elevated Bulgarian Lunge Hold", "prescription": "Wk1 60s / Wk2 90s / Wk3 120s", "equipment": "plate, bench" },
+            { "name": "Elevated Bulgarian Lunge Pump", "prescription": "Wk1 15 / Wk2 10 / Wk3 5", "equipment": "plate, bench", "superset": "alternate Hold+Pump x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "1-2in plate" } ] },
+          { "n": 4, "exercises": [
+            { "name": "Fire Hydrants", "prescription": "10/10/10 each leg", "equipment": "mat" },
+            { "name": "Straight-Legged Dead Lift Hold", "prescription": "Wk1 60s / Wk2 90s / Wk3 120s", "equipment": "dumbbells/bar 20-50 lb" },
+            { "name": "Straight-Legged Dead Lift Pump", "prescription": "Wk1 15 / Wk2 10 / Wk3 5", "equipment": "dumbbells/bar", "superset": "alternate Hold+Pump x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "1-2in plate" } ] },
+          { "n": 5, "exercises": [
+            { "name": "Fire Hydrants", "prescription": "10/10/10 each leg", "equipment": "mat" },
+            { "name": "V-Up Hold", "prescription": "Wk1 60s / Wk2 90s / Wk3 120s", "equipment": "bodyweight" },
+            { "name": "V-Up Pump", "prescription": "Wk1 15 / Wk2 10 / Wk3 5", "equipment": "bodyweight", "superset": "alternate Hold+Pump x3" },
+            { "name": "V-Calf Stretch", "prescription": "30s each side", "equipment": "bodyweight" } ] }
+        ],
+        "totalBody": { "label": "Relentless Total Body", "days": "Day 2 & 5", "progression": "Hold each Wk1 30s / Wk2 60s / Wk3 90s",
+          "exercises": [
+            { "name": "Push-up Hold", "prescription": "hold 30/60/90s", "equipment": "bodyweight", "superset": "with Pull-up Hold x3" },
+            { "name": "Pull-up Hold", "prescription": "hold 30/60/90s", "equipment": "pull-up bar" },
+            { "name": "Overhead Hold", "prescription": "hold 30/60/90s", "equipment": "barbell/dumbbells", "superset": "with Bicep Hold x3" },
+            { "name": "Bicep Hold", "prescription": "hold 30/60/90s", "equipment": "dumbbells" },
+            { "name": "Tricep Push-up Hold", "prescription": "hold 30/60/90s", "equipment": "bodyweight", "superset": "with Frog Plank Hold x3" },
+            { "name": "Frog Plank Hold", "prescription": "hold 30/60/90s", "equipment": "bodyweight" },
+            { "name": "Side Plank Hold", "prescription": "hold 30/60/90s each side x3", "equipment": "bodyweight" } ] }
+      },
+      {
+        "name": "FORCE", "weeks": "5-8", "focus": "Power / hold-plus-reps",
+        "schedule": { "Day1": "Power Legs (Seq 6-10)", "Day2": "Power Total Body", "Day3": "Rest", "Day4": "Power Legs (Seq 6-10)", "Day5": "Power Total Body", "Day6": "Rest", "Day7": "Rest", "Week8": "Recovery week (all days)" },
+        "holdProgression": "Holds: Wk5 30s, Wk6 20s, Wk7 10s, then 10 reps. Total-body holds: Wk5 30s, Wk6 60s, Wk7 90s + 10 reps.",
+        "legSequences": [
+          { "n": 6, "exercises": [
+            { "name": "Glute Bridge", "prescription": "15 each side, 1 set", "equipment": "mat" },
+            { "name": "Sitting Squats", "prescription": "Wk5 hold 30s / Wk6 20s / Wk7 10s + 10 reps", "equipment": "barbell, plate, bench" },
+            { "name": "Lunge Buttkickers", "prescription": "Wk5 10 / Wk6 8 / Wk7 6 each side", "equipment": "bodyweight", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 7, "exercises": [
+            { "name": "Glute Bridge", "prescription": "15 each side", "equipment": "mat" },
+            { "name": "Reverse Lunge", "prescription": "Wk5 hold 30s / Wk6 20s / Wk7 10s + 10 reps each leg", "equipment": "dumbbells, plate" },
+            { "name": "Tuck Jumps", "prescription": "Wk5 10 / Wk6 8 / Wk7 6", "equipment": "bodyweight", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 8, "exercises": [
+            { "name": "Glute Bridge", "prescription": "15 each side", "equipment": "mat" },
+            { "name": "Burpee Dead Lifts", "prescription": "Wk5 plank 30s / Wk6 20s / Wk7 10s + 10 reps", "equipment": "barbell" },
+            { "name": "Seated Box Jumps", "prescription": "Wk5 10 (18-24in) / Wk6 8 (24-36in) / Wk7 6 (36-42in)", "equipment": "bench, box", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 9, "exercises": [
+            { "name": "Glute Bridge", "prescription": "15 each side", "equipment": "mat" },
+            { "name": "Straight-Legged Dead Lifts", "prescription": "Wk5 hold 30s / Wk6 20s / Wk7 10s + 10 reps", "equipment": "barbell" },
+            { "name": "One-Legged Buttkickers", "prescription": "Wk5 10 / Wk6 8 / Wk7 6 each side", "equipment": "bodyweight", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 10, "exercises": [
+            { "name": "Glute Bridge", "prescription": "15 each side", "equipment": "mat" },
+            { "name": "Weighted Calf Raises", "prescription": "Wk5 hold 30s / Wk6 20s / Wk7 10s + 15 reps, 3 sets", "equipment": "barbell, plate" },
+            { "name": "Calf Stretch", "prescription": "30s each side", "equipment": "plate" } ] }
+        ],
+        "totalBody": { "label": "Power Total Body", "days": "Day 2 & 5", "progression": "Hold Wk5 30s / Wk6 60s / Wk7 90s, then 10 reps",
+          "exercises": [
+            { "name": "Push-up Hold w/10 Reps", "prescription": "hold 30/60/90s + 10 reps", "equipment": "bodyweight", "superset": "with Pull-up Hold x3" },
+            { "name": "Pull-up Hold w/10 Reps", "prescription": "hold + 10 reps", "equipment": "pull-up bar" },
+            { "name": "Overhead Hold w/10 Reps", "prescription": "hold + 10 reps", "equipment": "barbell/dumbbells", "superset": "with Bicep Hold x3" },
+            { "name": "Bicep Hold w/10 Reps", "prescription": "hold + 10 reps", "equipment": "dumbbells" },
+            { "name": "Tricep Push-up Hold w/10 Reps", "prescription": "hold + 10 reps", "equipment": "bodyweight", "superset": "with Frog Plank Hold x3" },
+            { "name": "Frog Plank Hold w/10 Reps", "prescription": "hold + 10 reps", "equipment": "bodyweight" },
+            { "name": "Side Plank Hold w/10 Reps", "prescription": "hold + 10 reps each side x3", "equipment": "bodyweight" } ] }
+      },
+      {
+        "name": "FLIGHT", "weeks": "9-12", "focus": "Explosive / max reps for time",
+        "schedule": { "Day1": "Explosive Legs (Seq 11-15)", "Day2": "Explosive Total Body", "Day3": "Rest", "Day4": "Explosive Legs (Seq 11-15)", "Day5": "Explosive Total Body", "Day6": "Rest", "Day7": "Rest", "Week12": "Recovery week (all days)" },
+        "holdProgression": "Strength moves: max reps for Wk9 30s / Wk10 20s / Wk11 15s. Total body: max reps 30s all weeks, add reps each week.",
+        "legSequences": [
+          { "n": 11, "exercises": [
+            { "name": "Fire Hydrant/Bridge Walkout Combo", "prescription": "10/10/10 each leg, then 6-step Bridge Walkouts x3", "equipment": "mat" },
+            { "name": "Dead Lift", "prescription": "max reps Wk9 30s / Wk10 20s / Wk11 15s", "equipment": "barbell" },
+            { "name": "Alternating Buttkicker Scissors", "prescription": "Wk9 10 / Wk10 8 / Wk11 6", "equipment": "bodyweight", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 12, "exercises": [
+            { "name": "Fire Hydrant/Bridge Walkout Combo", "prescription": "10/10/10 + Bridge Walkouts x3", "equipment": "mat" },
+            { "name": "Squats", "prescription": "max reps Wk9 30s / Wk10 20s / Wk11 15s", "equipment": "barbell, plate" },
+            { "name": "Back Roll Tuck Jumps", "prescription": "Wk9 10 / Wk10 8 / Wk11 6", "equipment": "bodyweight", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 13, "exercises": [
+            { "name": "Fire Hydrant/Bridge Walkout Combo", "prescription": "10/10/10 + Bridge Walkouts x3", "equipment": "mat" },
+            { "name": "Elevated Bulgarian Lunges", "prescription": "max reps Wk9 30s / Wk10 20s / Wk11 15s each side", "equipment": "dumbbells, plate, bench" },
+            { "name": "Bronco Kick Tuck Jumps", "prescription": "Wk9 10 / Wk10 8 / Wk11 6", "equipment": "bodyweight", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 14, "exercises": [
+            { "name": "Fire Hydrant/Bridge Walkout Combo", "prescription": "10/10/10 + Bridge Walkouts x3", "equipment": "mat" },
+            { "name": "Straight-Legged Dead Lifts", "prescription": "max reps Wk9 30s / Wk10 20s / Wk11 15s", "equipment": "barbell" },
+            { "name": "Attack Depth Jumps", "prescription": "Wk9 5 (18-24in) / Wk10 4 (24-36in) / Wk11 3 (36-48in)", "equipment": "box", "superset": "alternate x3" },
+            { "name": "Hip Flexor Stretch", "prescription": "30s each side", "equipment": "plate" } ] },
+          { "n": 15, "exercises": [
+            { "name": "Fire Hydrant/Bridge Walkout Combo", "prescription": "10/10/10 + Bridge Walkouts x3", "equipment": "mat" },
+            { "name": "Weighted Calf Raises", "prescription": "max reps Wk9 30s / Wk10 20s / Wk11 15s, 3 sets", "equipment": "barbell, plate" },
+            { "name": "Calf Stretch", "prescription": "30s each side", "equipment": "plate" } ] }
+        ],
+        "totalBody": { "label": "Explosive Total Body", "days": "Day 2 & 5", "progression": "Max reps for 30s each; add reps each week",
+          "exercises": [
+            { "name": "Clap Push-ups", "prescription": "max reps 30s", "equipment": "bodyweight", "superset": "with Pull-up/Chin-up Release x3" },
+            { "name": "Pull-up/Chin-up Release Combo", "prescription": "max reps 30s", "equipment": "pull-up bar" },
+            { "name": "Clean to Overhead Press", "prescription": "max reps 30s", "equipment": "barbell/dumbbells", "superset": "with Bicep Curl x3" },
+            { "name": "Bicep Curl", "prescription": "max reps 30s", "equipment": "dumbbells" },
+            { "name": "Elevated Pike Push-ups", "prescription": "max reps 30s", "equipment": "box/bench", "superset": "with Alternating Frog Plank x3" },
+            { "name": "Alternating Frog Plank", "prescription": "max reps 30s", "equipment": "mat" },
+            { "name": "Power Side Plank", "prescription": "max reps 30s each side x3", "equipment": "mat" } ] }
+      }
+    ]
+  },
+  "machines": [
+    { "brand": "Hoist", "model": "HD-3900", "stations": [
+      { "name": "Pec Fly", "muscles": "Chest", "howTo": "Back against the pad, palms-forward grip on the handles, sweep arms together in front." },
+      { "name": "Rear Delt", "muscles": "Upper back", "howTo": "Chest against the pad, overhand grip, pull the handles back toward your body." } ] },
+    { "brand": "Hoist", "model": "HD-3403", "stations": [
+      { "name": "Leg Press", "muscles": "Quadriceps", "howTo": "Grip handles, press the platform away to near-full extension, return under control." },
+      { "name": "Calf Raise", "muscles": "Calves", "howTo": "Legs extended on the plate, push through the balls of the feet, lower slowly." } ] },
+    { "brand": "Hoist", "model": "HD-3100 (verify)", "stations": [
+      { "name": "Preacher Curl", "muscles": "Biceps", "howTo": "Arms on the pad, underhand grip, curl the handle up, lower under control." },
+      { "name": "Triceps Extension", "muscles": "Triceps", "howTo": "Grip handles, press down to full arm extension, return slowly." } ] }
+  ]
+}
