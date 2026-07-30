@@ -4,12 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
-<meta name="description" content="Ballroom dance competition prep workout tracker with offline support" />
+<meta name="description" content="Personal workout tracker with offline support" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="Ballroom Workout" />
-<title>Ballroom Workout Tracker</title>
+<meta name="apple-mobile-web-app-title" content="Workout" />
+<title>Workout Tracker</title>
 
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css"
@@ -439,7 +439,7 @@
 
 <header class="app-bar">
   <i class="ti ti-barbell brand" aria-hidden="true"></i>
-  <h1>Ballroom Workout</h1>
+  <h1>Workout</h1>
   <span class="ver" id="verTag"></span>
   <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"><i class="ti ti-moon" aria-hidden="true"></i></button>
 </header>
@@ -587,7 +587,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '10.0.0';
+const APP_VERSION = '10.1.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1111,8 +1111,8 @@ let remTimer;
 function fireReminder() {
   if (isCompleted(new Date())) return;
   const opts = { body: "Time to train! Keep your streak alive. 🔥", icon: iconDataUrl(192), tag: 'daily-workout' };
-  try { navigator.serviceWorker.ready.then(reg => reg.showNotification('Ballroom Workout', opts)).catch(() => {}); }
-  catch (e) { try { new Notification('Ballroom Workout', opts); } catch (_) {} }
+  try { navigator.serviceWorker.ready.then(reg => reg.showNotification('Workout', opts)).catch(() => {}); }
+  catch (e) { try { new Notification('Workout', opts); } catch (_) {} }
 }
 function scheduleReminder() {
   clearTimeout(remTimer);
@@ -1124,7 +1124,7 @@ function scheduleReminder() {
   remTimer = setTimeout(() => { fireReminder(); scheduleReminder(); }, Math.min(ms, 2147483647));
   try {
     if (typeof TimestampTrigger !== 'undefined') {
-      navigator.serviceWorker.ready.then(reg => reg.showNotification('Ballroom Workout', {
+      navigator.serviceWorker.ready.then(reg => reg.showNotification('Workout', {
         tag: 'daily-workout', body: "Time to train! Keep your streak alive. 🔥", icon: iconDataUrl(192),
         showTrigger: new TimestampTrigger(next.getTime())
       }).catch(() => {}));
@@ -1309,7 +1309,7 @@ function renderEquipment() {
     `<div class="eq-sub">Required</div><ul class="eq-list">${li(eq.required)}</ul><div class="eq-sub">Optional</div><ul class="eq-list">${li(eq.optional)}</ul><button class="btn primary" id="printEquip" style="margin-top:12px"><i class="ti ti-printer"></i> Print equipment list</button>`;
   document.getElementById('printEquip').onclick = () => window.print();
   const pli = (arr) => arr.map(i => `<li>☐ ${esc(i)}</li>`).join('');
-  document.getElementById('equipment-checklist').innerHTML = `<h1>BALLROOM WORKOUT — GYM EQUIPMENT CHECKLIST</h1><h3>REQUIRED:</h3><ul>${pli(eq.required)}</ul><h3>OPTIONAL:</h3><ul>${pli(eq.optional)}</ul>`;
+  document.getElementById('equipment-checklist').innerHTML = `<h1>WORKOUT — GYM EQUIPMENT CHECKLIST</h1><h3>REQUIRED:</h3><ul>${pli(eq.required)}</ul><h3>OPTIONAL:</h3><ul>${pli(eq.optional)}</ul>`;
 }
 
 /* ---------- Workouts view ---------- */
@@ -1565,7 +1565,7 @@ document.getElementById('resetBtn').onclick = () => {
 };
 document.getElementById('exportBtn').onclick = () => {
   const exerciseLogs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
-  const blob = new Blob([JSON.stringify({ app: 'Ballroom Workout Tracker', version: APP_VERSION, exported: isoDate(new Date()), completions: store.completions, exerciseLogs }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ app: 'Workout Tracker', version: APP_VERSION, exported: isoDate(new Date()), completions: store.completions, exerciseLogs }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'ballroom-workout-data.json'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -1581,8 +1581,8 @@ function iconDataUrl(size) {
 }
 (function injectManifest() {
   const manifest = {
-    name: 'Ballroom Workout Tracker', short_name: 'Ballroom Workout',
-    description: 'Ballroom dance competition prep workout tracker with offline support',
+    name: 'Workout Tracker', short_name: 'Workout',
+    description: 'Personal workout tracker with offline support',
     start_url: BASE, scope: BASE, display: 'standalone', orientation: 'portrait',
     background_color: '#f4f6fa', theme_color: '#0891b2',
     icons: [{ src: iconDataUrl(192), sizes: '192x192', type: 'image/svg+xml', purpose: 'any' }, { src: iconDataUrl(512), sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }]
