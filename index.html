@@ -420,6 +420,18 @@
   .rt-foot .sh-shot { background: var(--fill-accent); border: 5px solid var(--fill-accent-weak); }
   .rt-foot .sh-shot.running { background: var(--streak); border-color: transparent; box-shadow: 0 0 0 6px rgba(249,115,22,.25); }
   .rt-foot .sh-card { background: var(--surface-2); color: var(--text-primary); }
+
+  /* Device tests */
+  .t-card { display: flex; flex-direction: column; gap: 10px; }
+  .t-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .t-top b { font-size: 15px; }
+  .t-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+  .t-ok { font-size: 10px; font-weight: 700; color: var(--success); background: var(--success-weak); padding: 2px 8px; border-radius: 999px; margin-left: 8px; white-space: nowrap; }
+  .t-no { font-size: 10px; font-weight: 700; color: var(--danger); background: color-mix(in srgb, var(--danger) 15%, transparent); padding: 2px 8px; border-radius: 999px; margin-left: 8px; white-space: nowrap; }
+  .t-res { font-size: 12px; color: var(--text-secondary); }
+  .t-res:empty { display: none; }
+  .t-res.good { color: var(--success); font-weight: 600; }
+  .t-res.bad { color: var(--danger); font-weight: 600; }
   .gb-bubble { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; position: relative; }
   .gb-bubble::before { content: ''; position: absolute; left: -7px; top: 18px; border: 7px solid transparent; border-right-color: var(--surface-2); }
   .gb-stats { display: flex; gap: 10px; margin-top: 12px; }
@@ -655,6 +667,13 @@
     </div>
     <p class="foot-note">Nothing is uploaded — GitHub only hosts the app code.</p>
   </section>
+
+  <!-- ============ TEST ============ -->
+  <section class="view" id="view-test">
+    <div class="view-title">Device Tests</div>
+    <div class="view-sub">Tap each to check it works on this phone.</div>
+    <div id="testBody"></div>
+  </section>
 </main>
 
 <nav class="tabbar">
@@ -662,6 +681,7 @@
   <button class="tab active" data-view="today"><i class="ti ti-calendar-event"></i>Today</button>
   <button class="tab" data-view="calendar"><i class="ti ti-calendar-month"></i>Calendar</button>
   <button class="tab" data-view="progress"><i class="ti ti-chart-bar"></i>Progress</button>
+  <button class="tab" data-view="test"><i class="ti ti-device-mobile-cog"></i>Test</button>
 </nav>
 
 <div class="modal-back" id="exBack"><div class="modal" id="exModal"></div></div>
@@ -676,7 +696,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '13.0.0';
+const APP_VERSION = '13.1.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1992,6 +2012,44 @@ function renderProgress() {
   document.getElementById('atPct').textContent = (atExp ? Math.round(atDone / atExp * 100) : 0) + '%';
 }
 
+/* ===== Device tests ===== */
+function renderTest() {
+  const has = { audio: ('AudioContext' in window) || ('webkitAudioContext' in window), speech: 'speechSynthesis' in window, vibrate: 'vibrate' in navigator, camera: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia), gps: 'geolocation' in navigator, notif: 'Notification' in window, wake: 'wakeLock' in navigator, share: (typeof navigator.share === 'function') };
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  const badge = ok => ok ? '<span class="t-ok">Supported</span>' : '<span class="t-no">Not supported</span>';
+  const row = (id, title, desc, ok, btn) => `<div class="card t-card"><div class="t-top"><div><b>${title}</b>${badge(ok)}<div class="t-desc">${desc}</div></div></div><button class="btn ${ok ? 'primary' : ''}" data-t="${id}" ${ok ? '' : 'disabled'}>${btn}</button><div class="t-res" id="tres-${id}"></div></div>`;
+  let html = `<div class="card tight" style="font-size:13px;line-height:1.7">Install: <b>${standalone ? 'Installed PWA ✅' : 'Browser tab — install to Home Screen for full features'}</b><br>Notifications permission: <b id="tNotif">${has.notif ? Notification.permission : 'n/a'}</b><br>Audio cues: <b>${store.audioOn ? 'On' : 'Off'}</b></div>`;
+  html += row('audio', 'Audio cues', 'Plays a beep + a spoken cue.', has.audio && has.speech, 'Play test');
+  html += row('vibrate', 'Vibration', 'Buzzes the phone.', has.vibrate, 'Buzz');
+  html += row('camera', 'Camera (share)', 'Opens the front camera with stats overlay.', has.camera, 'Open camera');
+  html += row('gps', 'GPS location', 'Reads your current coordinates.', has.gps, 'Get location');
+  html += row('run', 'Run tracker', 'Opens the mile run tracker.', has.gps, 'Open run tracker');
+  html += row('notif', 'Notifications', 'Asks permission + shows a test notification.', has.notif, 'Send test');
+  html += row('wake', 'Keep screen awake', 'Holds a screen wake lock for 5 seconds.', has.wake, 'Test wake lock');
+  html += row('share', 'Share card', 'Generates & shares a stats image.', true, 'Share card');
+  document.getElementById('testBody').innerHTML = html;
+  document.querySelectorAll('#testBody [data-t]').forEach(b => b.onclick = () => runTest(b.dataset.t));
+}
+function tres(id, msg, ok) { const e = document.getElementById('tres-' + id); if (e) { e.textContent = msg; e.className = 't-res ' + (ok === true ? 'good' : ok === false ? 'bad' : ''); } }
+async function runTest(t) {
+  switch (t) {
+    case 'audio': { ensureAudio(); const sv = store.audioOn; store.audioOn = true; beep(880, 0.15, 0.28); speak('Audio test. Three, two, one, go.'); store.audioOn = sv; tres('audio', 'Played — did you hear a beep and a voice?'); break; }
+    case 'vibrate': try { navigator.vibrate([120, 60, 120]); tres('vibrate', 'Buzzed — feel it?', true); } catch (e) { tres('vibrate', 'Failed: ' + e.message, false); } break;
+    case 'camera': openShare(); break;
+    case 'gps': tres('gps', 'Locating…'); navigator.geolocation.getCurrentPosition(p => tres('gps', `OK · ${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)} (±${Math.round(p.coords.accuracy)}m)`, true), e => tres('gps', 'Failed: ' + e.message + ' — allow Location', false), { enableHighAccuracy: true, timeout: 10000 }); break;
+    case 'run': openRun(); break;
+    case 'notif': {
+      let p = Notification.permission; if (p !== 'granted') { try { p = await Notification.requestPermission(); } catch (e) {} }
+      const nEl = document.getElementById('tNotif'); if (nEl) nEl.textContent = p;
+      if (p === 'granted') { try { const reg = await navigator.serviceWorker.ready; await reg.showNotification('Workout', { body: 'Test notification ✅', icon: iconDataUrl(192) }); tres('notif', 'Sent — check your notification shade', true); } catch (e) { try { new Notification('Workout', { body: 'Test notification ✅' }); tres('notif', 'Sent', true); } catch (_) { tres('notif', 'Failed: ' + e.message, false); } } }
+      else tres('notif', 'Permission: ' + p + ' — allow in Settings', false);
+      break;
+    }
+    case 'wake': try { await requestWake(); tres('wake', wakeLock ? 'Wake lock active for 5s ✅' : 'Requested (no lock returned)', !!wakeLock); setTimeout(() => { releaseWake(); tres('wake', 'Released'); }, 5000); } catch (e) { tres('wake', 'Failed: ' + e.message, false); } break;
+    case 'share': shareCard(shareStatsObj()); tres('share', 'Share sheet / download triggered', true); break;
+  }
+}
+
 /* ---------- Navigation ---------- */
 function switchView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
@@ -1999,6 +2057,7 @@ function switchView(name) {
   window.scrollTo({ top: 0 });
   if (name === 'calendar') renderCalendar();
   if (name === 'progress') renderProgress();
+  if (name === 'test') renderTest();
 }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
 
@@ -2080,6 +2139,7 @@ renderToday();
 renderCalendar();
 renderProgress();
 renderReminders();
+renderTest();
 scheduleReminder();
 // In-app nudge: if reminders on, not done today, and past reminder time
 (function nudge() {
