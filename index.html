@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#ffffff" />
 <meta name="description" content="Personal workout tracker with offline support" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -75,7 +75,7 @@
     --border: #38424f;
   }
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   html, body { margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -393,6 +393,33 @@
   .sh-shot { width: 74px; height: 74px; border-radius: 50%; background: #fff; border: 5px solid rgba(255,255,255,.35); }
   .sh-shot:active { transform: scale(.92); }
   .sh-card { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.16); color: #fff; display: grid; place-items: center; font-size: 22px; }
+
+  /* Swap button */
+  .p-swap { margin-top: 12px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border); border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  /* In-workout exercise list */
+  .p-list-ov { position: absolute; inset: 0; z-index: 3; background: var(--surface-0); display: flex; flex-direction: column; animation: fade .18s ease; }
+  .pl-head { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + var(--safe-t)) 16px 14px; border-bottom: 1px solid var(--border); font-weight: 700; }
+  .pl-body { flex: 1; overflow-y: auto; padding: 8px 12px calc(12px + var(--safe-b)); }
+  .pl-row { display: flex; align-items: center; gap: 12px; padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 15px; }
+  .pl-row .pl-ic { color: var(--text-secondary); font-size: 18px; }
+  .pl-row.done .pl-ic { color: var(--success); } .pl-row.done .pl-nm { color: var(--text-secondary); text-decoration: line-through; }
+  .pl-row.cur { background: var(--fill-accent-weak); border-radius: 10px; border-bottom-color: transparent; } .pl-row.cur .pl-ic { color: var(--fill-accent); } .pl-row.cur .pl-nm { font-weight: 700; }
+
+  /* Run tracker */
+  .run-tracker { position: fixed; inset: 0; z-index: 96; background: var(--surface-0); display: none; flex-direction: column; }
+  .run-tracker.open { display: flex; }
+  .rt-head { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + var(--safe-t)) 16px 14px; border-bottom: 1px solid var(--border); font-weight: 700; }
+  .rt-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+  .rt-clock { font-family: var(--mono); font-size: 66px; font-weight: 800; line-height: 1; }
+  .rt-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-top: 4px; }
+  .rt-grid { display: flex; gap: 44px; margin: 30px 0 16px; }
+  .rt-n { font-family: var(--mono); font-size: 34px; font-weight: 800; color: var(--fill-accent); }
+  .rt-l { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-secondary); margin-top: 4px; }
+  .rt-best { font-size: 14px; color: var(--text-secondary); }
+  .rt-foot { display: flex; align-items: center; justify-content: space-around; padding: 16px 30px calc(22px + var(--safe-b)); border-top: 1px solid var(--border); }
+  .rt-foot .sh-shot { background: var(--fill-accent); border: 5px solid var(--fill-accent-weak); }
+  .rt-foot .sh-shot.running { background: var(--streak); border-color: transparent; box-shadow: 0 0 0 6px rgba(249,115,22,.25); }
+  .rt-foot .sh-card { background: var(--surface-2); color: var(--text-primary); }
   .gb-bubble { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; font-size: 13px; font-weight: 600; position: relative; }
   .gb-bubble::before { content: ''; position: absolute; left: -7px; top: 18px; border: 7px solid transparent; border-right-color: var(--surface-2); }
   .gb-stats { display: flex; gap: 10px; margin-top: 12px; }
@@ -605,6 +632,9 @@
     <div class="section-label">Personal Bests</div>
     <div id="maxesBody"></div>
 
+    <div class="section-label">Cardio · Mile Run</div>
+    <div id="runsBody"></div>
+
     <div class="section-label">All Time</div>
     <div class="stat-row three">
       <div class="stat-card pad-sm"><div class="stat-num" id="atTotal">0</div><div class="stat-lbl">Total done</div></div>
@@ -638,6 +668,7 @@
 <div class="celebrate" id="celebrate"></div>
 <div class="player" id="player"></div>
 <div class="share-cam" id="shareCam"></div>
+<div class="run-tracker" id="runTracker"></div>
 <div id="equipment-checklist"></div>
 <div class="toast" id="toast"></div>
 
@@ -645,7 +676,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '12.0.0';
+const APP_VERSION = '13.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1030,6 +1061,7 @@ function renderMaster() {
 /* ===== Master-plan-driven Today ===== */
 function programWeek() { let d = Math.floor((startOfDay(new Date()) - startOfDay(parseISO(workoutPlan.startDate))) / 86400000); let w = Math.floor(Math.max(0, d) / 7) + 1; return ((w - 1) % 12) + 1; }
 function programPhaseIdx() { const w = programWeek(); return w <= 4 ? 0 : w <= 8 ? 1 : 2; }
+function phaseWeekIndex() { const w = programWeek(); return Math.min((w - 1) % 4, 2); }  // 0,1,2 for weeks 1-3 of a phase
 function jaLoggable(name) { const n = name.toLowerCase(); if (/stretch|hydrant|walkout|combo|mobility|balance|rest|rowing|bike|treadmill|cardio|walk/.test(n)) return null; return /deadlift|dead lift|squat|lunge|press|curl|carr|landmine|calf raise|overhead|clean/.test(n) ? ['weight', 'reps'] : ['reps']; }
 function jaEx(name, presc) { const f = jaLoggable(name); return { name, reps: presc, loggable: !!f, fields: f || undefined }; }
 function masterDay(date) {
@@ -1209,7 +1241,16 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function fmtElapsed() { return (P && P.startMs) ? fmt(Math.floor((Date.now() - P.startMs) / 1000)) : '0:00'; }
 function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
 function sessionVolume(session, dateKey) { let v = 0; session.data.blocks.forEach(b => b.exercises.forEach(ex => { const l = getLog(dateKey, ex.name); if (l && Array.isArray(l.sets)) { const reps = l.sets.filter(s => s && s.done).reduce((a, s) => a + (+s.reps || 0), 0); v += (+l.weight || 0) * reps; } })); return v; }
-function stepSeconds(ex) { const r = (ex.reps || '').toLowerCase(); let m = r.match(/(\d+)\s*min/); if (m) return +m[1] * 60; m = r.match(/(\d+)\s*sec/); if (m) return +m[1]; m = r.match(/(\d+)\s*s(\b|\/)/); if (m) return +m[1]; return 0; }
+function stepSeconds(ex) {
+  const r = (ex.reps || '').toLowerCase();
+  let m = r.match(/(\d+)\s*min/); if (m) return +m[1] * 60;
+  let list = [];
+  if (/wk\s*\d/.test(r)) list = [...r.matchAll(/(\d+)\s*s\b/g)].map(x => +x[1]);       // "Wk1 60s / Wk2 90s / Wk3 120s"
+  else { const slash = r.match(/(\d+(?:\s*\/\s*\d+)+)\s*s\b/); if (slash) list = slash[1].split('/').map(n => parseInt(n, 10)); } // "30/20/10s"
+  if (list.length) return list[Math.min(phaseWeekIndex(), list.length - 1)];
+  m = r.match(/(\d+)\s*sec/) || r.match(/(\d+)\s*s\b/); if (m) return +m[1];
+  return 0;
+}
 function restSecondsFor(block) { const m = (block && block.title || '').match(/(\d+)\s*sec\s*rest/i); return m ? +m[1] : 45; }
 function pImgFail(img) { const k = img.dataset.kind; img.outerHTML = `<div class="p-img glyphbig">${glyphSVG(k)}</div>`; }
 function buildSteps(session) {
@@ -1229,27 +1270,21 @@ function openPlayer() {
   const base = masterDay(now);
   if (base.kind === 'rest') { toast('Rest day — nothing to start'); return; }
   const session = applyMode(scaledSession(base, todayMinutes), todayMode);
-  P = { session, dateKey: isoDate(now), steps: buildSteps(session), i: 0, phase: 'work', t: null, left: 0, total: 0, running: false, startMs: Date.now(), elapsed: null };
+  const dateKey = isoDate(now), steps = buildSteps(session);
+  const anyLogged = steps.some(s => { if (s.type !== 'set') return false; const l = getLog(dateKey, s.ex.name); return l && l.sets && l.sets[s.round - 1] && l.sets[s.round - 1].done; });
+  P = { session, dateKey, steps, i: anyLogged ? firstIncomplete(steps, dateKey) : 0, phase: 'work', t: null, left: 0, total: 0, running: false, startMs: Date.now(), elapsed: null, lastAnnounced: -1 };
   document.getElementById('player').classList.add('open');
   P.elapsed = setInterval(() => { const e = document.getElementById('pElapsed'); if (e) e.textContent = fmtElapsed(); }, 1000);
-  requestWake();
+  ensureAudio(); requestWake();
   playerRender();
 }
 function closePlayer() {
   stopTick();
   if (P && P.elapsed) clearInterval(P.elapsed);
-  releaseWake();
-  let msg = null;
-  if (P) {
-    const now = new Date();
-    if (!isCompleted(now)) {
-      const c = todaySetCounts(P.session, P.dateKey);
-      if (c.done > 0) { const pct = Math.min(99, Math.round(c.done / c.total * 100)); setCompleted(now, true, { pct, min: todayMinutes }); msg = 'Partial saved — ' + pct + '%'; }
-    }
-  }
+  releaseWake(); try { speechSynthesis.cancel(); } catch (e) {}
+  listOpen = false; const ov = document.getElementById('pListOv'); if (ov) ov.remove();
   document.getElementById('player').classList.remove('open'); P = null;
   renderToday(); renderCalendar(); renderProgress();
-  if (msg) toast(msg);
 }
 function stopTick() { if (P && P.t) { clearInterval(P.t); P.t = null; } if (P) P.running = false; }
 function fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
@@ -1257,10 +1292,11 @@ function setClock() { const el = document.getElementById('pClock'); if (!el || !
 function tick() {
   if (!P) return;
   P.left -= 1; setClock();
-  if (P.left > 0) return;
+  if (P.left > 0) { if (P.left <= 3) beep(760, 0.09, 0.18); return; }
   stopTick();
   try { navigator.vibrate && navigator.vibrate([120, 60, 120]); } catch (e) {}
-  if (P.phase === 'rest') { P.phase = 'work'; goNext(); return; }
+  beep(P.phase === 'rest' ? 1040 : 520, 0.28, 0.28);
+  if (P.phase === 'rest') { P.phase = 'work'; speak('Go'); goNext(); return; }
   const s = P.steps[P.i];               // work timer finished → auto-advance
   if (s.type === 'set') logCurrentSet();
   else goNext();
@@ -1295,9 +1331,51 @@ function playerRestScreen(sec) {
   el.querySelector('.p-foot').innerHTML = `<div class="p-btnrow"><button class="p-main rest" id="pSkip"><i class="ti ti-player-track-next"></i> Skip rest &amp; continue</button></div>`;
   P.phase = 'rest'; armTimer(sec); P.running = true; P.t = setInterval(tick, 1000);
   wireTimer();
+  speak('Rest ' + sec + ' seconds. Next, ' + upNext);
   document.getElementById('pSkip').onclick = () => { P.phase = 'work'; goNext(); };
 }
-function header(pct) { return `<div class="p-head"><button class="p-close" id="pClose"><i class="ti ti-x"></i></button><div class="p-prog"><div class="f" style="width:${pct}%"></div></div><div class="p-count"><i class="ti ti-clock" style="font-size:13px;vertical-align:-1px"></i> <span id="pElapsed">${fmtElapsed()}</span> · ${Math.min(P.i + 1, P.steps.length)}/${P.steps.length}</div></div>`; }
+function header(pct) {
+  return `<div class="p-head"><button class="p-close" id="pClose"><i class="ti ti-x"></i></button>
+    <div style="flex:1;min-width:0"><div class="p-prog"><div class="f" style="width:${pct}%"></div></div>
+    <div class="p-count" style="margin-top:5px"><i class="ti ti-clock" style="font-size:12px;vertical-align:-1px"></i> <span id="pElapsed">${fmtElapsed()}</span> · ${Math.min(P.i + 1, P.steps.length)}/${P.steps.length}</div></div>
+    <button class="p-close" id="pList"><i class="ti ti-list-numbers"></i></button>
+    <button class="p-close" id="pAudio"><i class="ti ${store.audioOn ? 'ti-volume' : 'ti-volume-off'}"></i></button></div>`;
+}
+function wireHeader() {
+  const c = document.getElementById('pClose'); if (c) c.onclick = closePlayer;
+  const l = document.getElementById('pList'); if (l) l.onclick = toggleList;
+  const a = document.getElementById('pAudio'); if (a) a.onclick = toggleAudio;
+}
+function toggleAudio() { store.audioOn = !store.audioOn; saveStore(); const a = document.querySelector('#pAudio i'); if (a) a.className = 'ti ' + (store.audioOn ? 'ti-volume' : 'ti-volume-off'); toast(store.audioOn ? 'Audio cues on' : 'Audio cues off'); if (store.audioOn) { ensureAudio(); beep(880, 0.1, 0.2); } }
+let listOpen = false;
+function toggleList() { listOpen = !listOpen; renderList(); }
+function renderList() {
+  let ov = document.getElementById('pListOv');
+  if (!listOpen) { if (ov) ov.remove(); return; }
+  let rows = '';
+  P.steps.forEach((s, idx) => {
+    if (s.type === 'finish') { rows += `<div class="pl-row ${idx === P.i ? 'cur' : ''}" data-i="${idx}"><span class="pl-ic"><i class="ti ti-flag-check"></i></span><span class="pl-nm">Finish</span></div>`; return; }
+    let done = false;
+    if (s.type === 'set') { const l = getLog(P.dateKey, s.ex.name); done = !!(l && l.sets && l.sets[s.round - 1] && l.sets[s.round - 1].done); }
+    rows += `<div class="pl-row ${idx === P.i ? 'cur' : ''} ${done ? 'done' : ''}" data-i="${idx}"><span class="pl-ic"><i class="ti ${done ? 'ti-circle-check' : (idx === P.i ? 'ti-player-play' : 'ti-circle')}"></i></span><span class="pl-nm">${esc(s.ex.name)}${s.type === 'set' ? ` · set ${s.round}/${s.rounds}` : ''}</span></div>`;
+  });
+  if (!ov) { ov = document.createElement('div'); ov.id = 'pListOv'; ov.className = 'p-list-ov'; document.getElementById('player').appendChild(ov); }
+  ov.innerHTML = `<div class="pl-head">This workout<button class="p-close" id="plClose"><i class="ti ti-x"></i></button></div><div class="pl-body">${rows}</div>`;
+  ov.querySelector('#plClose').onclick = () => { listOpen = false; renderList(); };
+  ov.querySelectorAll('.pl-row').forEach(r => r.onclick = () => { const i = +r.dataset.i; listOpen = false; renderList(); stopTick(); P.i = i; playerRender(); });
+}
+function firstIncomplete(steps, dateKey) {
+  for (let k = 0; k < steps.length; k++) { const s = steps[k]; if (s.type === 'set') { const l = getLog(dateKey, s.ex.name); const done = l && Array.isArray(l.sets) && l.sets[s.round - 1] && l.sets[s.round - 1].done; if (!done) return k; } }
+  return steps.length - 1;
+}
+function swapCurrent() {
+  const s = P.steps[P.i]; if (!s.ex) return;
+  const alt = subExercise(s.ex, 'none');
+  if (alt.name === s.ex.name) { toast('No substitute available'); return; }
+  const orig = s.ex.name;
+  P.steps.forEach(st => { if (st.ex && st.ex.name === orig) { st.ex = alt; st.secs = stepSeconds(alt); } });
+  playerRender(); toast('Swapped to ' + alt.name);
+}
 function playerRender() {
   P.phase = 'work';
   const el = document.getElementById('player'), s = P.steps[P.i];
@@ -1308,7 +1386,7 @@ function playerRender() {
     const vol = sessionVolume(P.session, P.dateKey);
     const stat = (n, l) => `<div style="flex:1;background:var(--surface-2);border-radius:12px;padding:12px 6px"><div style="font-family:var(--mono);font-weight:800;font-size:20px">${n}</div><div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px">${l}</div></div>`;
     el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">Done</div><div class="p-name">Session complete</div><div class="cbolt" style="margin:6px auto 14px"><i class="ti ti-flag-check"></i></div><div style="display:flex;gap:10px;width:100%;max-width:360px;margin-bottom:10px">${stat(fmt(secs), 'Time')}${stat(c.done + '/' + c.total, 'Sets')}${stat(vol > 0 ? vol : '—', 'Volume')}</div><div class="p-coach">Lock it in — and share the win.</div></div><div class="p-foot"><div class="p-btnrow"><button class="p-nav" id="pBack"><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pFinish"><i class="ti ti-flag-check"></i> Complete workout</button></div></div>`;
-    document.getElementById('pClose').onclick = closePlayer; document.getElementById('pBack').onclick = goPrev;
+    wireHeader(); document.getElementById('pBack').onclick = goPrev;
     document.getElementById('pFinish').onclick = () => { setCompleted(new Date(), true, { pct: 100, min: mins }); closePlayer(); celebrate('full', 100); };
     return;
   }
@@ -1316,21 +1394,27 @@ function playerRender() {
   const nx = P.steps[P.i + 1], nextName = nx ? (nx.type === 'finish' ? 'Finish' : nx.ex.name) : '';
   const media = h.imgs.length ? `<img class="p-img" data-kind="${kindFor(ex.name)}" src="${h.imgs[0]}" alt="" onerror="pImgFail(this)">` : `<div class="p-img glyphbig">${glyphSVG(kindFor(ex.name))}</div>`;
   let mid = '';
+  const swapBtn = `<button class="p-swap" id="pSwap"><i class="ti ti-arrows-exchange"></i> Swap exercise</button>`;
   if (s.type === 'set') {
     const weighted = (ex.fields || []).includes('weight'), lw = lastWeight(ex.name), tr = targetReps(ex);
+    const tgt = s.secs ? `${s.secs}s hold` : `${tr} reps`;
     const w = weighted ? `<div class="stepper" data-field="weight"><button data-dec>−</button><div class="mid"><span class="stlbl">LBS</span><span class="stval" id="pWeightVal">${lw || 0}</span></div><button data-inc>+</button></div>` : '';
     const rp = `<div class="stepper" data-field="reps"><button data-dec>−</button><div class="mid"><span class="stlbl">REPS</span><span class="stval" id="pRepsVal">${tr}</span></div><button data-inc>+</button></div>`;
-    mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · target ${esc(ex.reps || tr)}</div><div class="p-coach">${coachCue(ex)}</div>${s.secs ? timerHTML(s.secs, false) : ''}<div class="p-logs">${w}${rp}</div>`;
+    mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${tgt}</div><div class="p-coach">${coachCue(ex)}</div>${s.secs ? timerHTML(s.secs, false) : ''}<div class="p-logs">${w}${rp}</div>${swapBtn}`;
   } else {
-    mid = `<div class="p-set">${esc(ex.reps || 'Complete this movement')}</div><div class="p-coach">${ex.formNote ? esc(ex.formNote) : 'Move with control.'}</div>${s.secs ? timerHTML(s.secs, false) : ''}`;
+    const runBtn = kindFor(ex.name) === 'cardio' ? `<button class="p-swap" id="pRun"><i class="ti ti-run"></i> Track a run (GPS)</button>` : '';
+    mid = `<div class="p-set">${esc(ex.reps || 'Complete this movement')}</div><div class="p-coach">${ex.formNote ? esc(ex.formNote) : 'Move with control.'}</div>${s.secs ? timerHTML(s.secs, false) : ''}${runBtn}${swapBtn}`;
   }
   el.innerHTML = header(pct) + `<div class="p-step"><div class="p-block">${esc(s.block && s.block.title || '')}</div><div class="p-name">${esc(ex.name)}</div>${media}${mid}</div><div class="p-foot">${nextName ? `<div class="p-nextline">Next · ${esc(nextName)}</div>` : ''}<div class="p-btnrow"><button class="p-nav" id="pBack" ${P.i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button><button class="p-main" id="pDone"><i class="ti ti-check"></i> ${s.type === 'set' ? 'Log set' : 'Done'}</button><button class="p-nav" id="pSkipStep" ${P.i >= P.steps.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button></div></div>`;
-  document.getElementById('pClose').onclick = closePlayer;
+  wireHeader();
   document.getElementById('pBack').onclick = goPrev;
   document.getElementById('pSkipStep').onclick = goNext;
+  document.getElementById('pSwap').onclick = swapCurrent;
+  const pr = document.getElementById('pRun'); if (pr) pr.onclick = openRun;
   el.querySelectorAll('.p-logs .stepper').forEach(st => { const f = st.dataset.field, v = st.querySelector('.stval'), step = f === 'weight' ? 5 : 1; st.querySelector('[data-dec]').onclick = () => v.textContent = Math.max(0, (+v.textContent) - step); st.querySelector('[data-inc]').onclick = () => v.textContent = (+v.textContent) + step; });
   if (s.secs) { armTimer(s.secs); wireTimer(); }
   document.getElementById('pDone').onclick = () => { if (s.type === 'set') logCurrentSet(); else goNext(); };
+  if (P.lastAnnounced !== P.i) { P.lastAnnounced = P.i; speak(s.type === 'set' ? (ex.name + (s.secs ? ', ' + s.secs + ' second hold' : ', ' + targetReps(ex) + ' reps')) : ex.name); }
 }
 
 /* ===== Share (camera + stats overlay) ===== */
@@ -1359,7 +1443,7 @@ async function startCam() {
     if (shStream) shStream.getTracks().forEach(t => t.stop());
     shStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: shFacing }, audio: false });
     const v = document.getElementById('shVideo'); if (v) { v.srcObject = shStream; v.style.transform = shFacing === 'user' ? 'scaleX(-1)' : 'none'; }
-  } catch (e) { toast('Camera unavailable — sharing a card'); shareCard(shareStatsObj()); }
+  } catch (e) { toast('Camera blocked — allow it in your phone Settings. Sharing a card instead.'); shareCard(shareStatsObj()); }
 }
 function closeShare() { if (shStream) { shStream.getTracks().forEach(t => t.stop()); shStream = null; } const el = document.getElementById('shareCam'); el.classList.remove('open'); el.innerHTML = ''; }
 function roundRectC(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -1404,6 +1488,51 @@ async function shareBlob(blob, s) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1500);
   try { await navigator.clipboard.writeText(text); } catch (e) {}
   toast('Saved — share it anywhere'); closeShare();
+}
+
+/* ===== Mile run tracker (GPS) ===== */
+let RT = null;
+function haversine(a, b, c, d) { const R = 6371000, toR = x => x * Math.PI / 180; const dLa = toR(c - a), dLo = toR(d - b); const s = Math.sin(dLa / 2) ** 2 + Math.cos(toR(a)) * Math.cos(toR(c)) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(s)); }
+function bestMile() { const runs = (store.runs || []).filter(r => r.mi >= 0.5); if (!runs.length) return 0; return Math.round(Math.min(...runs.map(r => r.secs / r.mi))); }
+function openRun() { RT = { elapsed: 0, running: false, dist: 0, last: null, watch: null, t: null }; document.getElementById('runTracker').classList.add('open'); ensureAudio(); renderRun(); }
+function closeRun() { if (RT) { if (RT.t) clearInterval(RT.t); if (RT.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(RT.watch); } RT = null; releaseWake(); try { speechSynthesis.cancel(); } catch (e) {} const el = document.getElementById('runTracker'); el.classList.remove('open'); el.innerHTML = ''; renderProgress(); }
+function renderRun() {
+  const el = document.getElementById('runTracker'), mi = RT.dist / 1609.34, pace = mi > 0.01 ? fmt(Math.round(RT.elapsed / mi)) : '—:—', bm = bestMile();
+  el.innerHTML = `<div class="rt-head"><button class="p-close" id="rtClose"><i class="ti ti-x"></i></button><div>Run tracker</div><button class="p-close" id="rtAudio"><i class="ti ${store.audioOn ? 'ti-volume' : 'ti-volume-off'}"></i></button></div>
+    <div class="rt-body"><div class="rt-clock" id="rtClock">${fmt(RT.elapsed)}</div><div class="rt-sub">Elapsed</div>
+      <div class="rt-grid"><div><div class="rt-n" id="rtDist">${mi.toFixed(2)}</div><div class="rt-l">Miles</div></div><div><div class="rt-n" id="rtPace">${pace}</div><div class="rt-l">Min / mile</div></div></div>
+      <div class="rt-best">${bm ? 'Best mile · ' + fmt(bm) : 'Run a mile to set a best'}</div></div>
+    <div class="rt-foot"><button class="sh-card" id="rtManual" title="Enter distance"><i class="ti ti-pencil"></i></button><button class="sh-shot ${RT.running ? 'running' : ''}" id="rtToggle"></button><button class="sh-card" id="rtStop" title="Finish"><i class="ti ti-flag"></i></button></div>`;
+  document.getElementById('rtClose').onclick = () => { if (RT.elapsed > 2 || RT.dist > 10) { if (confirm('Discard this run?')) closeRun(); } else closeRun(); };
+  document.getElementById('rtAudio').onclick = () => { toggleAudio(); const a = document.querySelector('#rtAudio i'); if (a) a.className = 'ti ' + (store.audioOn ? 'ti-volume' : 'ti-volume-off'); };
+  document.getElementById('rtToggle').onclick = toggleRun;
+  document.getElementById('rtStop').onclick = stopRun;
+  document.getElementById('rtManual').onclick = () => { const d = prompt('Distance in miles?'); if (d == null) return; const v = parseFloat(d); if (!isNaN(v) && v > 0) { RT.dist = v * 1609.34; renderRun(); } };
+}
+function toggleRun() {
+  if (RT.running) { RT.running = false; if (RT.t) { clearInterval(RT.t); RT.t = null; } if (RT.watch != null && navigator.geolocation) { navigator.geolocation.clearWatch(RT.watch); RT.watch = null; } speak('Paused'); }
+  else {
+    RT.running = true; RT.last = null; requestWake(); speak('Go');
+    RT.t = setInterval(() => { RT.elapsed++; const c = document.getElementById('rtClock'); if (c) c.textContent = fmt(RT.elapsed); const mi = RT.dist / 1609.34, p = document.getElementById('rtPace'); if (p && mi > 0.01) p.textContent = fmt(Math.round(RT.elapsed / mi)); }, 1000);
+    if (navigator.geolocation) RT.watch = navigator.geolocation.watchPosition(pos => { const la = pos.coords.latitude, lo = pos.coords.longitude; if (RT.last) { const step = haversine(RT.last.la, RT.last.lo, la, lo); if (step < 60) RT.dist += step; const d = document.getElementById('rtDist'); if (d) d.textContent = (RT.dist / 1609.34).toFixed(2); } RT.last = { la, lo }; }, () => {}, { enableHighAccuracy: true, maximumAge: 1000, timeout: 12000 });
+  }
+  const t = document.getElementById('rtToggle'); if (t) t.className = 'sh-shot ' + (RT.running ? 'running' : '');
+}
+function stopRun() {
+  if (RT.elapsed < 3 && RT.dist < 10) { closeRun(); return; }
+  const mi = RT.dist / 1609.34, runs = store.runs || [];
+  runs.push({ ts: Date.now(), date: isoDate(new Date()), secs: RT.elapsed, mi: +mi.toFixed(3) }); store.runs = runs; saveStore();
+  beep(1040, 0.3, 0.28); speak('Run complete');
+  toast(mi > 0.01 ? `Logged ${mi.toFixed(2)} mi · ${fmt(Math.round(RT.elapsed / mi))}/mi` : `Logged ${fmt(RT.elapsed)}`);
+  closeRun();
+}
+function renderRuns() {
+  const runs = (store.runs || []).slice().sort((a, b) => b.ts - a.ts), bm = bestMile();
+  let html = `<button class="btn primary" id="runBtn" style="margin-bottom:10px"><i class="ti ti-run"></i> Track a run</button>`;
+  if (bm) html += `<div class="perf-row"><span class="perf-name">Best mile</span><span class="perf-val">${fmt(bm)}</span></div>`;
+  runs.slice(0, 5).forEach(r => { html += `<div class="perf-row"><span class="perf-name">${relDate(r.ts)} · ${r.mi.toFixed(2)} mi</span><span class="perf-val">${fmt(r.secs)}${r.mi >= 0.1 ? ' · ' + fmt(Math.round(r.secs / r.mi)) + '/mi' : ''}</span></div>`; });
+  document.getElementById('runsBody').innerHTML = html;
+  document.getElementById('runBtn').onclick = openRun;
 }
 
 /* ===== Achievements ===== */
@@ -1501,6 +1630,13 @@ function loadStore() { try { const r = localStorage.getItem(STORE_KEY); return r
 function saveStore() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {} }
 let store = loadStore();
 if (!store.completions) store.completions = {};
+if (store.audioOn === undefined) store.audioOn = true;
+
+/* ===== Audio cues (beeps + voice) ===== */
+let audioCtx = null;
+function ensureAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} }
+function beep(freq, dur, vol) { if (!store.audioOn) return; try { ensureAudio(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine'; o.frequency.value = freq || 880; o.connect(g); g.connect(audioCtx.destination); g.gain.setValueAtTime(vol || 0.2, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (dur || 0.15)); o.start(); o.stop(audioCtx.currentTime + (dur || 0.15)); } catch (e) {} }
+function speak(text) { if (!store.audioOn || !('speechSynthesis' in window)) return; try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {} }
 
 /* ---------- Date helpers ---------- */
 function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
@@ -1744,7 +1880,9 @@ function renderToday() {
 
   let totalEx = 0;
   const summary = w.blocks.map(b => { totalEx += b.exercises.length; return `<div class="seq-note" style="margin:12px 0 6px">${esc(b.title)}</div>` + b.exercises.map(ex => exRowHTML(ex.name, ex.reps || '')).join(''); }).join('');
-  const startBtn = `<button class="complete-btn" id="startBtn" style="background:var(--fill-accent);color:var(--on-accent);border-color:var(--fill-accent);margin:0 0 14px"><span class="box" style="border:none;background:transparent;color:inherit"><i class="ti ti-player-play-filled"></i></span>${done ? 'Restart in guided mode' : 'Start workout'}</button>`;
+  const prog = todaySetCounts(session, dateKey), inProgress = !done && prog.done > 0;
+  const startLabel = done ? 'Restart in guided mode' : inProgress ? `Resume · ${prog.done}/${prog.total} sets done` : 'Start workout';
+  const startBtn = `<button class="complete-btn" id="startBtn" style="background:var(--fill-accent);color:var(--on-accent);border-color:var(--fill-accent);margin:0 0 14px"><span class="box" style="border:none;background:transparent;color:inherit"><i class="ti ti-player-play-filled"></i></span>${startLabel}</button>`;
   const doneCard = done ? `<div class="card" style="background:${status === 'partial' ? 'var(--streak)' : 'var(--success)'};color:#fff;border:none;display:flex;align-items:center;gap:12px"><i class="ti ti-circle-check" style="font-size:26px"></i><div style="flex:1"><b>${status === 'partial' ? 'Logged ' + completionPct(now) + '% today' : 'Workout complete today'}</b><div style="font-size:12px;opacity:.9">Nice work.</div></div><button class="p-close" id="clearBtn" style="background:rgba(255,255,255,.22);color:#fff"><i class="ti ti-x"></i></button></div>` : '';
   body.innerHTML = startBtn + doneCard + `<div class="section-label" style="margin-top:8px">Today · ${totalEx} exercises · ~${todayMinutes} min</div><div class="card">${summary}</div><p class="foot-note">Tap an exercise for how-to · complete your workout in guided mode.</p>`;
   document.getElementById('startBtn').onclick = openPlayer;
@@ -1843,6 +1981,7 @@ function renderProgress() {
 
   renderPerformance();
   renderMaxes();
+  renderRuns();
   renderBadges();
 
   const { best } = computeStreaks();
