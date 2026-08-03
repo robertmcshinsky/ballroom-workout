@@ -306,6 +306,7 @@
   .mtag { margin-left: auto; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
   .mtag.POWER { background: var(--fill-accent); color: var(--on-accent); }
   .mtag.CONDITIONING { background: var(--success); color: var(--on-success); }
+  .mtag.STRENGTH { background: #2f74ff; color: #fff; }
   .mtag.LIGHT { background: var(--surface-2); color: var(--text-secondary); }
   .mtag.REST { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
   details.master-day > summary .acc-chev { margin-left: 8px; }
@@ -392,7 +393,7 @@
   .sh-toprow { display: flex; align-items: flex-start; justify-content: space-between; }
   .sh-streakpill { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font-weight: 800; letter-spacing: 1px; font-size: 14px; padding: 9px 15px; border-radius: 999px; }
   .sh-streakpill .ti { color: var(--streak); }
-  .sh-glass { background: rgba(16,19,26,.42); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); border: 1px solid rgba(255,255,255,.16); border-radius: 22px; padding: 18px 20px; color: #fff; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .sh-glass { background: rgba(16,19,26,.2); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,.13); border-radius: 20px; padding: 13px 16px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.65); }
   .sh-glass::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: var(--fill-accent); margin-bottom: 12px; }
   .sh-title { font-size: 27px; font-weight: 800; line-height: 1.05; }
   .sh-week { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: var(--streak); margin-top: 5px; }
@@ -562,11 +563,13 @@
       <button class="prog active" data-prog="master">Master</button>
       <button class="prog" data-prog="ballroom">Ballroom</button>
       <button class="prog" data-prog="jump">Jump</button>
-      <button class="prog" data-prog="machines">Machines</button>
+      <button class="prog" data-prog="cali">Cali</button>
+      <button class="prog" data-prog="machines">Gear</button>
     </div>
     <div id="masterBody"></div>
     <div id="libraryBody" style="display:none"></div>
     <div id="jumpBody" style="display:none"></div>
+    <div id="caliBody" style="display:none"></div>
     <div id="machinesBody" style="display:none"></div>
     <p class="foot-note">Tap any exercise for demo photos, step-by-step instructions & muscles worked.</p>
   </section>
@@ -708,7 +711,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '13.2.0';
+const APP_VERSION = '14.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -818,7 +821,7 @@ const GLYPHS = {
 };
 function kindFor(n) {
   n = n.toLowerCase();
-  if (/row|bike|treadmill|cardio/.test(n)) return 'cardio';
+  if (/row|bike|treadmill|cardio|\brun\b|jog/.test(n)) return 'cardio';
   if (/pull-apart|lateral walk/.test(n)) return 'band';
   if (/deadlift|calf/.test(n)) return 'dumbbell';
   if (/landmine/.test(n)) return 'landmine';
@@ -1064,18 +1067,19 @@ function renderMaster() {
   let html = `<div class="card tight" style="font-size:12px;color:var(--text-secondary);line-height:1.7">
     <b style="color:var(--text-primary)">Master Plan · 12 weeks</b><br>
     Blends <b style="color:var(--fill-accent)">Jump Attack</b> (explosive power) with your <b style="color:var(--fill-accent)">Ballroom</b> stability &amp; conditioning. Jump Attack owns the training days; ballroom fills its two recovery days, so hard and light days interleave. Phases line up: FIRE + Foundation → FORCE → FLIGHT + Competition Prep.<br><br>
-    <b style="color:var(--text-primary)">Weekly rhythm</b><br>Mon / Thu — Legs (power) · Tue / Fri — Total Body (power) · Wed — Ballroom 30 (active recovery) · Sat — Ballroom short (light) · Sun — rest + mobility.<br><br>
+    <b style="color:var(--text-primary)">Weekly rhythm</b><br>Every session opens with a <b>mile run</b>. Mon / Thu — Legs (power) · Tue / Fri — Calisthenics (strength) · Wed — Ballroom 30 (active recovery) · Sat — Ballroom short (light) · Sun — rest + mobility.<br><br>
     <b style="color:var(--text-primary)">Recovery weeks (4, 8, 12):</b> skip Jump Attack — ballroom + mobility only.</div>`;
   JA.phases.forEach((p, idx) => {
     const bp = idx === 0 ? workoutPlan.phase1 : workoutPlan.phase2;
     const full = bp.full30, short = bp.quick15 || bp.catalyst20;
     const bl = idx === 0 ? 'Ballroom Phase 1' : idx === 1 ? 'Ballroom Phase 1→2 (switch wk 7)' : 'Ballroom Phase 2';
+    const caliRows = kind => CALI.phases[Math.min(idx, 2)][kind].map(e => exRowHTML(e[0], /s$/.test(e[1]) ? e[1] + ' hold' : e[1] + ' reps')).join('');
     const plan = [
       ['POWER', 'Jump Attack · Legs', legsRows(p)],
-      ['POWER', 'Jump Attack · Total Body', tbRows(p)],
+      ['STRENGTH', 'Calisthenics · Upper', caliRows('upper')],
       ['CONDITIONING', 'Ballroom · ' + full.title, ballroomRows(full)],
       ['POWER', 'Jump Attack · Legs', legsRows(p)],
-      ['POWER', 'Jump Attack · Total Body', tbRows(p)],
+      ['STRENGTH', 'Calisthenics · Full Body', caliRows('full')],
       ['LIGHT', 'Ballroom · ' + short.title, ballroomRows(short)],
       ['REST', 'Rest + 10-min mobility', '']
     ];
@@ -1090,19 +1094,71 @@ function renderMaster() {
   document.getElementById('masterBody').innerHTML = html;
 }
 
+function renderCalisthenics() {
+  let html = `<div class="card tight" style="font-size:12px;color:var(--text-secondary)"><b style="color:var(--text-primary)">Beginner → strong.</b><br>Progressive bodyweight strength — built into your Tue &amp; Fri sessions in the Master plan. Each = a mile warm-up, then 3 rounds of the circuit. It levels up automatically each phase.</div>`;
+  const names = ['Phase 1 · FIRE', 'Phase 2 · FORCE', 'Phase 3 · FLIGHT'];
+  CALI.phases.forEach((p, idx) => {
+    html += `<div class="phase-card"><div class="phase-head"><div class="pn">${names[idx]}</div><div class="pw">${esc(p.label)}</div></div><div class="phase-body">`;
+    html += `<div class="seq-note">Upper Body · Tue</div>` + p.upper.map(e => exRowHTML(e[0], /s$/.test(e[1]) ? e[1] + ' hold' : e[1] + ' reps')).join('');
+    html += `<div class="seq-note">Full Body · Fri</div>` + p.full.map(e => exRowHTML(e[0], /s$/.test(e[1]) ? e[1] + ' hold' : e[1] + ' reps')).join('');
+    html += `</div></div>`;
+  });
+  document.getElementById('caliBody').innerHTML = html;
+}
+
 /* ===== Master-plan-driven Today ===== */
 function programWeek() { let d = Math.floor((startOfDay(new Date()) - startOfDay(parseISO(workoutPlan.startDate))) / 86400000); let w = Math.floor(Math.max(0, d) / 7) + 1; return ((w - 1) % 12) + 1; }
 function programPhaseIdx() { const w = programWeek(); return w <= 4 ? 0 : w <= 8 ? 1 : 2; }
 function phaseWeekIndex() { const w = programWeek(); return Math.min((w - 1) % 4, 2); }  // 0,1,2 for weeks 1-3 of a phase
 function jaLoggable(name) { const n = name.toLowerCase(); if (/stretch|hydrant|walkout|combo|mobility|balance|rest|rowing|bike|treadmill|cardio|walk/.test(n)) return null; return /deadlift|dead lift|squat|lunge|press|curl|carr|landmine|calf raise|overhead|clean/.test(n) ? ['weight', 'reps'] : ['reps']; }
 function jaEx(name, presc) { const f = jaLoggable(name); return { name, reps: presc, loggable: !!f, fields: f || undefined }; }
+/* ===== Beginner calisthenics track (progresses by phase) ===== */
+const CALI = {
+  phases: [
+    { label: 'Foundations (beginner)',
+      upper: [['Incline push-ups', '8'], ['Bench dips', '8'], ['Inverted rows (table/bar)', '8'], ['Scapular pulls', '8'], ['Plank', '30s']],
+      full: [['Bodyweight squats', '15'], ['Knee push-ups', '10'], ['Glute bridges', '15'], ['Superman hold', '20s'], ['Hollow hold', '20s']] },
+    { label: 'Building (intermediate)',
+      upper: [['Push-ups', '10'], ['Pike push-ups', '6'], ['Bench dips', '12'], ['Inverted rows (table/bar)', '10'], ['Dead hang', '25s']],
+      full: [['Bodyweight squats', '20'], ['Push-ups', '12'], ['Reverse lunges', '10/leg'], ['Hollow hold', '30s'], ['Superman hold', '15']] },
+    { label: 'Strong (advanced)',
+      upper: [['Push-ups', '15'], ['Pike push-ups', '8'], ['Dips', '10'], ['Negative pull-ups', '5'], ['Plank', '45s']],
+      full: [['Bulgarian split squats', '10/leg'], ['Push-ups', '15'], ['Pike push-ups', '8'], ['Hanging knee raises', '8'], ['Hollow hold', '40s']] }
+  ],
+  cues: {
+    'Incline push-ups': 'Hands on a bench or counter — the higher the surface, the easier. Lower with control, press up.',
+    'Bench dips': 'Hands on a bench behind you, feet forward; lower until elbows hit 90°, then press up.',
+    'Inverted rows (table/bar)': 'Lie under a sturdy table or low bar, body straight, pull your chest up and squeeze your back.',
+    'Scapular pulls': 'Hang from a bar and pull your shoulder blades down and together without bending your elbows.',
+    'Plank': 'Forearms down, straight line from head to heels, brace your core.',
+    'Bodyweight squats': 'Sit your hips back to parallel, chest tall, drive up through your heels.',
+    'Knee push-ups': 'Push-up from your knees — keep a straight line from knees to head.',
+    'Glute bridges': 'Drive your hips up to a straight line, squeeze your glutes hard at the top.',
+    'Superman hold': 'Face-down, lift your chest, arms and legs off the floor, squeeze your glutes.',
+    'Hollow hold': 'On your back, press your low back into the floor and lift shoulders and legs into a shallow dish.',
+    'Push-ups': 'Straight body, lower until your chest is just off the floor, then press up.',
+    'Pike push-ups': 'Hips high in a pike, lower the crown of your head toward the floor, press back up.',
+    'Dead hang': 'Hang from a bar with active shoulders and a full grip.',
+    'Reverse lunges': 'Step back into a lunge, front thigh parallel, drive up through the front heel.',
+    'Dips': 'On parallel bars, lower until your shoulders are below your elbows, then press up.',
+    'Negative pull-ups': 'Jump or step to the top of a pull-up, then lower yourself as slowly as you can.',
+    'Hanging knee raises': 'Hang from a bar and raise your knees toward your chest with control.',
+    'Bulgarian split squats': 'Rear foot on a bench, lower straight down, press up through the front heel.'
+  }
+};
+function caliEx(name, reps) { return { name, reps, loggable: true, fields: ['reps'], formNote: CALI.cues[name] || '' }; }
+function caliSession(pi, kind) {
+  const c = CALI.phases[Math.min(pi, 2)], list = kind === 'upper' ? c.upper : c.full;
+  return { title: 'Calisthenics · ' + (kind === 'upper' ? 'Upper Body' : 'Full Body'), dayType: c.label, blocks: [{ title: 'Strength circuit · 3 rounds', exercises: list.map(e => caliEx(e[0], e[1])) }] };
+}
 function masterDay(date) {
   const dow = date.getDay(), pi = programPhaseIdx(), jp = JA.phases[pi], bp = pi === 0 ? workoutPlan.phase1 : workoutPlan.phase2;
   const legs = () => ({ title: jp.name + ' · Legs', dayType: 'Legs', blocks: jp.seqs.map(sq => ({ title: 'Sequence ' + sq.n + ' · 3 rounds', exercises: sq.ex.map(e => jaEx(e[0], e[1])) })) });
   const tb = () => ({ title: jp.name + ' · Total Body', dayType: 'Total Body', blocks: [{ title: 'Circuit · 3 rounds', exercises: jp.tb.map(e => jaEx(e[0], e[1])) }] });
   switch (dow) {
     case 1: case 4: return { kind: 'legs', tag: 'Legs', focus: 'Explosive legs — Jump Attack', data: legs() };
-    case 2: case 5: return { kind: 'tb', tag: 'Total Body', focus: 'Total-body power — Jump Attack', data: tb() };
+    case 2: return { kind: 'cali', tag: 'Calisthenics', focus: 'Upper-body strength — calisthenics', data: caliSession(pi, 'upper') };
+    case 5: return { kind: 'cali', tag: 'Calisthenics', focus: 'Full-body strength — calisthenics', data: caliSession(pi, 'full') };
     case 3: return { kind: 'ball', tag: 'Ballroom', focus: 'Stability & cardio — active recovery', data: bp.full30 };
     case 6: return { kind: 'ball', tag: 'Ballroom', focus: 'Light stability + mobility', data: bp.quick15 || bp.catalyst20 };
     default: return { kind: 'rest', tag: 'Rest', focus: 'Recover & stretch', data: bp.rest };
@@ -1175,6 +1231,11 @@ function subExercise(ex, mode) {
 function applyMode(session, mode) {
   if (!session || mode === 'full') return session;
   return Object.assign({}, session, { data: Object.assign({}, session.data, { blocks: session.data.blocks.map(b => Object.assign({}, b, { exercises: b.exercises.map(ex => subExercise(ex, mode)) })) }) });
+}
+function withWarmup(session) {
+  if (!session || !session.data || !session.data.blocks) return session;
+  const mile = { title: 'Warm-up', exercises: [{ name: 'Mile run', reps: '1 mile', loggable: false, formNote: 'Start every session with an easy mile. Tap “Track a run (GPS)” for live pace.' }] };
+  return Object.assign({}, session, { data: Object.assign({}, session.data, { blocks: [mile, ...session.data.blocks] }) });
 }
 
 /* ===== Gamification ===== */
@@ -1301,7 +1362,7 @@ function openPlayer() {
   const now = new Date();
   const base = masterDay(now);
   if (base.kind === 'rest') { toast('Rest day — nothing to start'); return; }
-  const session = applyMode(scaledSession(base, todayMinutes), todayMode);
+  const session = withWarmup(applyMode(scaledSession(base, todayMinutes), todayMode));
   const dateKey = isoDate(now), steps = buildSteps(session);
   const anyLogged = steps.some(s => { if (s.type !== 'set') return false; const l = getLog(dateKey, s.ex.name); return l && l.sets && l.sets[s.round - 1] && l.sets[s.round - 1].done; });
   P = { session, dateKey, steps, i: anyLogged ? firstIncomplete(steps, dateKey) : 0, phase: 'work', t: null, left: 0, total: 0, running: false, startMs: Date.now(), elapsed: null, lastAnnounced: -1 };
@@ -1455,7 +1516,7 @@ function shareStatsObj() {
   const { current, best } = computeStreaks(), now = new Date(), base = masterDay(now);
   const session = base.kind === 'rest' ? null : applyMode(scaledSession(base, todayMinutes), todayMode);
   const c = session ? todaySetCounts(session, isoDate(now)) : { done: 0, total: 0 };
-  return { title: base.kind === 'rest' ? 'Recovery' : (session ? session.data.title : 'Workout'), focus: base.focus || '', week: programWeek(), streak: current, best, level: levelInfo().lvl, xp: xpTotal(), workouts: Object.keys(store.completions).length, sets: c.done, totalSets: c.total };
+  return { title: base.kind === 'rest' ? 'Recovery' : (session ? session.data.title : 'Workout'), focus: base.focus || '', week: programWeek(), streak: current, best, level: levelInfo().lvl, xp: xpTotal(), workouts: Object.keys(store.completions).length, sets: c.done, totalSets: c.total, mile: bestMile() };
 }
 function shareOverlayHTML(s) {
   return `<div class="sh-toprow">
@@ -1466,6 +1527,7 @@ function shareOverlayHTML(s) {
       <div class="sh-title">${esc(s.title)}</div>
       <div class="sh-week">WEEK ${s.week} · ${esc((s.focus || '').toUpperCase())}</div>
       <div class="sh-statbar">
+        ${s.mile ? `<div class="sh-stat"><span class="sh-sn">${fmt(s.mile)}</span><span class="sh-sl">Mile</span></div>` : ''}
         <div class="sh-stat"><span class="sh-sn">${s.sets}/${s.totalSets}</span><span class="sh-sl">Sets</span></div>
         <div class="sh-stat"><span class="sh-sn">${s.xp}</span><span class="sh-sl">XP</span></div>
         <div class="sh-stat"><span class="sh-sn">Lv ${s.level}</span><span class="sh-sl">Level</span></div>
@@ -1494,7 +1556,7 @@ function roundRectC(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arc
 function fitText(c, text, x, y, maxW, size, weight) { let f = size; while (f > 26) { c.font = (weight || '800') + ' ' + f + 'px sans-serif'; if (c.measureText(text).width <= maxW) break; f -= 3; } c.fillText(text, x, y); }
 function drawShareOverlay(c, W, H, s) {
   let tg = c.createLinearGradient(0, 0, 0, 280); tg.addColorStop(0, 'rgba(0,0,0,.55)'); tg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = tg; c.fillRect(0, 0, W, 280);
-  let bg = c.createLinearGradient(0, H * 0.42, 0, H); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,.92)'); c.fillStyle = bg; c.fillRect(0, H * 0.4, W, H * 0.6);
+  let bg = c.createLinearGradient(0, H * 0.55, 0, H); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,.62)'); c.fillStyle = bg; c.fillRect(0, H * 0.5, W, H * 0.5);
   // top brand badge + streak pill
   c.fillStyle = '#ea580c'; roundRectC(c, 44, 50, 272, 86, 24); c.fill();
   c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 48px sans-serif'; c.fillText('⚡ WORKOUT', 70, 110);
@@ -1502,14 +1564,14 @@ function drawShareOverlay(c, W, H, s) {
   c.textAlign = 'center'; c.fillStyle = '#fb923c'; c.font = '800 48px sans-serif'; c.fillText('🔥 ' + s.streak, W - 44 - pw2 / 2, 112);
   // glass panel
   const px = 44, pw = W - 88, ph = 300, py = H - ph - 72;
-  c.fillStyle = 'rgba(18,22,30,.5)'; roundRectC(c, px, py, pw, ph, 30); c.fill();
-  c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 2; roundRectC(c, px, py, pw, ph, 30); c.stroke();
+  c.fillStyle = 'rgba(18,22,30,.28)'; roundRectC(c, px, py, pw, ph, 30); c.fill();
+  c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 2; roundRectC(c, px, py, pw, ph, 30); c.stroke();
   c.fillStyle = '#ea580c'; c.fillRect(px + 34, py + 40, 64, 8);
   c.textAlign = 'left'; c.fillStyle = '#fff'; fitText(c, s.title, px + 34, py + 108, pw - 68, 62);
   c.fillStyle = '#fb923c'; c.font = '700 30px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + s.focus).toUpperCase(), px + 34, py + 150);
   // stat tiles
-  const tiles = [[s.sets + '/' + s.totalSets, 'SETS'], [String(s.xp), 'XP'], ['LV ' + s.level, 'LEVEL']];
-  const ty = py + ph - 66, tw = (pw - 68) / 3; c.textAlign = 'center';
+  const tiles = [...(s.mile ? [[fmt(s.mile), 'MILE']] : []), [s.sets + '/' + s.totalSets, 'SETS'], [String(s.xp), 'XP'], ['LV ' + s.level, 'LEVEL']];
+  const ty = py + ph - 66, tw = (pw - 68) / tiles.length; c.textAlign = 'center';
   tiles.forEach((t, i) => { const cx = px + 34 + tw * i + tw / 2; if (i > 0) { c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 2; c.beginPath(); c.moveTo(px + 34 + tw * i, ty - 42); c.lineTo(px + 34 + tw * i, ty + 30); c.stroke(); } c.fillStyle = '#fff'; c.font = '800 48px sans-serif'; c.fillText(t[0], cx, ty); c.fillStyle = 'rgba(255,255,255,.72)'; c.font = '600 24px sans-serif'; c.fillText(t[1], cx, ty + 34); });
   c.textAlign = 'left';
 }
@@ -1673,6 +1735,7 @@ function wireProgSwitch() {
     document.getElementById('libraryBody').style.display = p === 'ballroom' ? '' : 'none';
     document.getElementById('equipAcc').style.display = p === 'ballroom' ? '' : 'none';
     document.getElementById('jumpBody').style.display = p === 'jump' ? '' : 'none';
+    document.getElementById('caliBody').style.display = p === 'cali' ? '' : 'none';
     document.getElementById('machinesBody').style.display = p === 'machines' ? '' : 'none';
     window.scrollTo({ top: 0 });
   });
@@ -1903,7 +1966,7 @@ function renderToday() {
   const now = new Date(), dateKey = isoDate(now);
   const done = isCompleted(now), status = completionStatus(now);
   const base = masterDay(now), isRest = base.kind === 'rest';
-  const session = isRest ? base : applyMode(scaledSession(base, todayMinutes), todayMode);
+  const session = isRest ? base : withWarmup(applyMode(scaledSession(base, todayMinutes), todayMode));
   const w = session.data;
   const pct = done ? completionPct(now) : todayProgressPct(session, dateKey, false);
 
@@ -2173,6 +2236,7 @@ renderEquipment();
 renderWorkouts();
 renderJumpAttack();
 renderMachines();
+renderCalisthenics();
 renderMaster();
 wireProgSwitch();
 wireExDetail();
