@@ -565,15 +565,15 @@
 
 <main>
   <!-- ============ WORKOUTS ============ -->
-  <section class="view" id="view-workouts">
-    <div class="view-title">Workout Library</div>
-    <div class="view-sub">Full plan plus 15–60 min options — tap any day to expand.</div>
+  <section class="view" id="view-settings">
+    <div class="view-title">Settings</div>
+    <div class="view-sub">Your plan, preferences, data & device tests.</div>
 
+    <div class="section-label">Training Plan</div>
     <details class="acc" id="equipAcc" style="display:none">
       <summary><span class="acc-t"><i class="ti ti-tools" style="vertical-align:-3px"></i> Gym Equipment Checklist</span><i class="ti ti-chevron-down acc-chev"></i></summary>
       <div class="acc-body" id="equipBody"></div>
     </details>
-
     <div class="prog-switch" id="progSwitch">
       <button class="prog active" data-prog="master">Master</button>
       <button class="prog" data-prog="ballroom">Ballroom</button>
@@ -586,7 +586,23 @@
     <div id="jumpBody" style="display:none"></div>
     <div id="caliBody" style="display:none"></div>
     <div id="machinesBody" style="display:none"></div>
-    <p class="foot-note">Tap any exercise for demo photos, step-by-step instructions & muscles worked.</p>
+
+    <div class="section-label">Preferences</div>
+    <div class="card"><div class="rem-row"><div class="rl"><b>Audio cues</b><span>Voice + countdown beeps during workouts.</span></div><div class="switch" id="audioSwitch"><div class="knob"></div></div></div></div>
+
+    <div class="section-label">Reminders</div>
+    <div class="card" id="reminderBody"></div>
+
+    <div class="section-label">Device Tests</div>
+    <div class="view-sub" style="margin:-4px 0 12px">Tap each to check it works on this phone.</div>
+    <div id="testBody"></div>
+
+    <div class="section-label">Data</div>
+    <div class="btn-row">
+      <button class="btn" id="exportBtn"><i class="ti ti-download"></i> Export</button>
+      <button class="btn danger" id="resetBtn"><i class="ti ti-trash"></i> Reset</button>
+    </div>
+    <p class="foot-note">All data is stored on this device only — nothing is uploaded.</p>
   </section>
 
   <!-- ============ TODAY ============ -->
@@ -689,32 +705,15 @@
 
     <div class="section-label">Achievements</div>
     <div class="badges" id="badgesBody"></div>
-
-    <div class="section-label">Reminders</div>
-    <div class="card" id="reminderBody"></div>
-
-    <div class="section-label">Data</div>
-    <div class="btn-row">
-      <button class="btn" id="exportBtn"><i class="ti ti-download"></i> Export</button>
-      <button class="btn danger" id="resetBtn"><i class="ti ti-trash"></i> Reset</button>
-    </div>
-    <p class="foot-note">Nothing is uploaded — GitHub only hosts the app code.</p>
-  </section>
-
-  <!-- ============ TEST ============ -->
-  <section class="view" id="view-test">
-    <div class="view-title">Device Tests</div>
-    <div class="view-sub">Tap each to check it works on this phone.</div>
-    <div id="testBody"></div>
+    <p class="foot-note">All data is stored on this device only.</p>
   </section>
 </main>
 
 <nav class="tabbar">
-  <button class="tab" data-view="workouts"><i class="ti ti-list-details"></i>Plan</button>
   <button class="tab active" data-view="today"><i class="ti ti-calendar-event"></i>Today</button>
   <button class="tab" data-view="calendar"><i class="ti ti-calendar-month"></i>Calendar</button>
   <button class="tab" data-view="progress"><i class="ti ti-chart-bar"></i>Progress</button>
-  <button class="tab" data-view="test"><i class="ti ti-device-mobile-cog"></i>Test</button>
+  <button class="tab" data-view="settings"><i class="ti ti-settings"></i>Settings</button>
 </nav>
 
 <div class="modal-back" id="exBack"><div class="modal" id="exModal"></div></div>
@@ -729,7 +728,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '14.1.0';
+const APP_VERSION = '14.2.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -2215,8 +2214,9 @@ function switchView(name) {
   window.scrollTo({ top: 0 });
   if (name === 'calendar') renderCalendar();
   if (name === 'progress') renderProgress();
-  if (name === 'test') renderTest();
+  if (name === 'settings') { renderTest(); renderReminders(); updateAudioSwitch(); }
 }
+function updateAudioSwitch() { const sw = document.getElementById('audioSwitch'); if (sw) sw.classList.toggle('on', !!store.audioOn); }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
 
 /* ---------- Theme ---------- */
@@ -2299,6 +2299,8 @@ renderCalendar();
 renderProgress();
 renderReminders();
 renderTest();
+updateAudioSwitch();
+(function () { const asw = document.getElementById('audioSwitch'); if (asw) asw.onclick = () => { store.audioOn = !store.audioOn; saveStore(); updateAudioSwitch(); if (store.audioOn) { ensureAudio(); beep(880, 0.1, 0.2); } toast(store.audioOn ? 'Audio cues on' : 'Audio cues off'); }; })();
 scheduleReminder();
 // In-app nudge: if reminders on, not done today, and past reminder time
 (function nudge() {
