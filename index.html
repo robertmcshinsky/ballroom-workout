@@ -389,6 +389,18 @@
   .sh-stats > div:first-child b { font-size: 24px; } .sh-stats > div:first-child span { font-size: 13px; opacity: .85; margin-left: 8px; }
   .sh-row { display: flex; gap: 18px; margin-top: 8px; font-weight: 700; font-size: 17px; }
   .sh-row .ti { color: var(--streak); vertical-align: -2px; }
+  .sh-toprow { display: flex; align-items: flex-start; justify-content: space-between; }
+  .sh-streakpill { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font-weight: 800; letter-spacing: 1px; font-size: 14px; padding: 9px 15px; border-radius: 999px; }
+  .sh-streakpill .ti { color: var(--streak); }
+  .sh-glass { background: rgba(16,19,26,.42); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); border: 1px solid rgba(255,255,255,.16); border-radius: 22px; padding: 18px 20px; color: #fff; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+  .sh-glass::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: var(--fill-accent); margin-bottom: 12px; }
+  .sh-title { font-size: 27px; font-weight: 800; line-height: 1.05; }
+  .sh-week { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: var(--streak); margin-top: 5px; }
+  .sh-statbar { display: flex; margin-top: 16px; }
+  .sh-stat { flex: 1; text-align: center; border-left: 1px solid rgba(255,255,255,.16); }
+  .sh-stat:first-child { border-left: none; }
+  .sh-sn { display: block; font-family: var(--mono); font-weight: 800; font-size: 25px; }
+  .sh-sl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: .72; }
   .sh-foot { display: flex; align-items: center; justify-content: space-around; padding: 16px 30px calc(22px + var(--safe-b)); background: #000; }
   .sh-shot { width: 74px; height: 74px; border-radius: 50%; background: #fff; border: 5px solid rgba(255,255,255,.35); }
   .sh-shot:active { transform: scale(.92); }
@@ -696,7 +708,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '13.1.0';
+const APP_VERSION = '13.2.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1446,7 +1458,19 @@ function shareStatsObj() {
   return { title: base.kind === 'rest' ? 'Recovery' : (session ? session.data.title : 'Workout'), focus: base.focus || '', week: programWeek(), streak: current, best, level: levelInfo().lvl, xp: xpTotal(), workouts: Object.keys(store.completions).length, sets: c.done, totalSets: c.total };
 }
 function shareOverlayHTML(s) {
-  return `<div class="sh-brand"><i class="ti ti-bolt"></i> WORKOUT</div><div class="sh-stats"><div><b>${esc(s.title)}</b><span>Week ${s.week}</span></div><div class="sh-row"><span><i class="ti ti-flame"></i> ${s.streak}d</span><span><i class="ti ti-checkbox"></i> ${s.sets}/${s.totalSets}</span><span><i class="ti ti-bolt"></i> ${s.xp} XP</span></div></div>`;
+  return `<div class="sh-toprow">
+      <div class="sh-brand"><i class="ti ti-bolt"></i> WORKOUT</div>
+      <div class="sh-streakpill"><i class="ti ti-flame"></i> ${s.streak} DAY${s.streak === 1 ? '' : 'S'}</div>
+    </div>
+    <div class="sh-glass">
+      <div class="sh-title">${esc(s.title)}</div>
+      <div class="sh-week">WEEK ${s.week} · ${esc((s.focus || '').toUpperCase())}</div>
+      <div class="sh-statbar">
+        <div class="sh-stat"><span class="sh-sn">${s.sets}/${s.totalSets}</span><span class="sh-sl">Sets</span></div>
+        <div class="sh-stat"><span class="sh-sn">${s.xp}</span><span class="sh-sl">XP</span></div>
+        <div class="sh-stat"><span class="sh-sn">Lv ${s.level}</span><span class="sh-sl">Level</span></div>
+      </div>
+    </div>`;
 }
 async function openShare() {
   const stats = shareStatsObj(), el = document.getElementById('shareCam');
@@ -1467,13 +1491,27 @@ async function startCam() {
 }
 function closeShare() { if (shStream) { shStream.getTracks().forEach(t => t.stop()); shStream = null; } const el = document.getElementById('shareCam'); el.classList.remove('open'); el.innerHTML = ''; }
 function roundRectC(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function fitText(c, text, x, y, maxW, size, weight) { let f = size; while (f > 26) { c.font = (weight || '800') + ' ' + f + 'px sans-serif'; if (c.measureText(text).width <= maxW) break; f -= 3; } c.fillText(text, x, y); }
 function drawShareOverlay(c, W, H, s) {
-  const g = c.createLinearGradient(0, H * 0.5, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.85)'); c.fillStyle = g; c.fillRect(0, H * 0.45, W, H * 0.55);
-  c.fillStyle = '#ea580c'; roundRectC(c, 44, 44, 250, 78, 20); c.fill();
-  c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 46px sans-serif'; c.fillText('⚡ WORKOUT', 66, 98);
-  c.font = '800 66px sans-serif'; c.fillText(s.title, 60, H - 200);
-  c.fillStyle = '#f97316'; c.font = '700 34px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + s.focus).toUpperCase(), 60, H - 150);
-  c.fillStyle = '#fff'; c.font = '700 42px sans-serif'; c.fillText(`🔥 ${s.streak}   ✅ ${s.sets}/${s.totalSets}   ⚡ ${s.xp} XP`, 60, H - 80);
+  let tg = c.createLinearGradient(0, 0, 0, 280); tg.addColorStop(0, 'rgba(0,0,0,.55)'); tg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = tg; c.fillRect(0, 0, W, 280);
+  let bg = c.createLinearGradient(0, H * 0.42, 0, H); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,.92)'); c.fillStyle = bg; c.fillRect(0, H * 0.4, W, H * 0.6);
+  // top brand badge + streak pill
+  c.fillStyle = '#ea580c'; roundRectC(c, 44, 50, 272, 86, 24); c.fill();
+  c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 48px sans-serif'; c.fillText('⚡ WORKOUT', 70, 110);
+  const pw2 = 220; c.fillStyle = 'rgba(0,0,0,.42)'; roundRectC(c, W - 44 - pw2, 50, pw2, 86, 43); c.fill();
+  c.textAlign = 'center'; c.fillStyle = '#fb923c'; c.font = '800 48px sans-serif'; c.fillText('🔥 ' + s.streak, W - 44 - pw2 / 2, 112);
+  // glass panel
+  const px = 44, pw = W - 88, ph = 300, py = H - ph - 72;
+  c.fillStyle = 'rgba(18,22,30,.5)'; roundRectC(c, px, py, pw, ph, 30); c.fill();
+  c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 2; roundRectC(c, px, py, pw, ph, 30); c.stroke();
+  c.fillStyle = '#ea580c'; c.fillRect(px + 34, py + 40, 64, 8);
+  c.textAlign = 'left'; c.fillStyle = '#fff'; fitText(c, s.title, px + 34, py + 108, pw - 68, 62);
+  c.fillStyle = '#fb923c'; c.font = '700 30px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + s.focus).toUpperCase(), px + 34, py + 150);
+  // stat tiles
+  const tiles = [[s.sets + '/' + s.totalSets, 'SETS'], [String(s.xp), 'XP'], ['LV ' + s.level, 'LEVEL']];
+  const ty = py + ph - 66, tw = (pw - 68) / 3; c.textAlign = 'center';
+  tiles.forEach((t, i) => { const cx = px + 34 + tw * i + tw / 2; if (i > 0) { c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 2; c.beginPath(); c.moveTo(px + 34 + tw * i, ty - 42); c.lineTo(px + 34 + tw * i, ty + 30); c.stroke(); } c.fillStyle = '#fff'; c.font = '800 48px sans-serif'; c.fillText(t[0], cx, ty); c.fillStyle = 'rgba(255,255,255,.72)'; c.font = '600 24px sans-serif'; c.fillText(t[1], cx, ty + 34); });
+  c.textAlign = 'left';
 }
 function captureShare(stats) {
   const v = document.getElementById('shVideo');
@@ -1487,17 +1525,20 @@ function captureShare(stats) {
 }
 function shareCard(s) {
   const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
-  const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#1b2130'); g.addColorStop(1, '#0f1218'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-  c.fillStyle = '#ea580c'; c.fillRect(0, 0, W, 14); roundRectC(c, 60, 66, 250, 80, 22); c.fill();
-  c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 46px sans-serif'; c.fillText('⚡ WORKOUT', 84, 122);
+  const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#171b23'); g.addColorStop(1, '#0d1015'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  let rg = c.createRadialGradient(W * 0.5, -120, 60, W * 0.5, -120, 760); rg.addColorStop(0, 'rgba(234,88,12,.5)'); rg.addColorStop(1, 'rgba(234,88,12,0)'); c.fillStyle = rg; c.fillRect(0, 0, W, 780);
+  c.fillStyle = '#ea580c'; roundRectC(c, 60, 74, 272, 88, 24); c.fill();
+  c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 50px sans-serif'; c.fillText('⚡ WORKOUT', 88, 136);
+  c.fillStyle = '#fff'; fitText(c, s.title, 60, 300, W - 120, 64);
+  c.fillStyle = '#fb923c'; c.font = '700 32px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + (s.focus || '')).toUpperCase(), 60, 350);
   c.textAlign = 'center';
-  c.fillStyle = '#f97316'; c.font = '800 300px sans-serif'; c.fillText(String(s.streak), W / 2, H / 2 + 30);
-  c.fillStyle = '#9aa6b6'; c.font = '700 44px sans-serif'; c.fillText('DAY STREAK', W / 2, H / 2 + 110);
-  const y = H - 250, cell = (x, n, l) => { c.fillStyle = '#fff'; c.font = '800 62px sans-serif'; c.fillText(n, x, y); c.fillStyle = '#9aa6b6'; c.font = '600 30px sans-serif'; c.fillText(l, x, y + 46); };
-  cell(W * 0.25, String(s.workouts), 'WORKOUTS'); cell(W * 0.5, 'Lv ' + s.level, 'LEVEL'); cell(W * 0.75, String(s.xp), 'XP');
-  c.fillStyle = '#5b6472'; c.font = '500 30px sans-serif'; c.fillText('Week ' + s.week + ' of training', W / 2, H - 66);
+  c.fillStyle = 'rgba(255,255,255,.55)'; c.font = '800 40px sans-serif'; c.fillText('DAY STREAK', W / 2, H / 2 - 150);
+  c.fillStyle = '#f97316'; c.font = '800 320px sans-serif'; c.fillText(String(s.streak), W / 2, H / 2 + 110);
+  c.font = '110px sans-serif'; c.fillText('🔥', W / 2, H / 2 + 232);
+  const y = H - 168, step = W / 3, cell = (i, n, l) => { const x = step * i + step / 2; c.fillStyle = '#fff'; c.font = '800 62px sans-serif'; c.fillText(n, x, y); c.fillStyle = 'rgba(255,255,255,.62)'; c.font = '600 28px sans-serif'; c.fillText(l, x, y + 44); };
+  cell(0, String(s.workouts), 'WORKOUTS'); cell(1, 'LV ' + s.level, 'LEVEL'); cell(2, String(s.xp), 'XP');
   c.textAlign = 'left';
-  cv.toBlob(b => shareBlob(b, s), 'image/jpeg', 0.9);
+  cv.toBlob(b => shareBlob(b, s), 'image/jpeg', 0.92);
 }
 async function shareBlob(blob, s) {
   const file = new File([blob], 'workout.jpg', { type: 'image/jpeg' });
