@@ -248,6 +248,17 @@
   .perf-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
   .perf-name { font-size: 14px; font-weight: 700; }
   .perf-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--fill-accent); white-space: nowrap; }
+  .an-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; }
+  .an-info { flex: 1; min-width: 0; }
+  .an-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .an-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .spark { width: 80px; height: 32px; flex: 0 0 auto; }
+  .an-chart { background: var(--surface-2); border-radius: 12px; padding: 10px; margin-bottom: 12px; }
+  .an-chart svg { width: 100%; height: auto; display: block; }
+  .an-log { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .an-log:last-child { border-bottom: none; }
+  .an-log span:first-child { color: var(--text-secondary); }
+  .an-log span:last-child { font-family: var(--mono); font-weight: 700; }
 
   .btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn.primary { background: var(--fill-accent); color: var(--on-accent); border-color: var(--fill-accent); }
@@ -395,6 +406,10 @@
   .sh-streakpill .ti { color: var(--streak); }
   .sh-glass { background: rgba(16,19,26,.2); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,.13); border-radius: 20px; padding: 13px 16px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.65); }
   .sh-glass::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: var(--fill-accent); margin-bottom: 12px; }
+  .sh-details { color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.8); }
+  .sh-details::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: var(--fill-accent); margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.5); }
+  .sh-line { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-weight: 800; font-size: 16px; }
+  .sh-line .ti { color: var(--streak); vertical-align: -2px; margin-right: 3px; }
   .sh-title { font-size: 27px; font-weight: 800; line-height: 1.05; }
   .sh-week { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: var(--streak); margin-top: 5px; }
   .sh-statbar { display: flex; margin-top: 16px; }
@@ -659,6 +674,9 @@
     <div class="section-label">Personal Bests</div>
     <div id="maxesBody"></div>
 
+    <div class="section-label">Every Exercise · Graphs</div>
+    <div id="analyticsBody"></div>
+
     <div class="section-label">Cardio · Mile Run</div>
     <div id="runsBody"></div>
 
@@ -711,7 +729,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '14.0.0';
+const APP_VERSION = '14.1.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1513,25 +1531,21 @@ function playerRender() {
 /* ===== Share (camera + stats overlay) ===== */
 let shStream = null, shFacing = 'user';
 function shareStatsObj() {
-  const { current, best } = computeStreaks(), now = new Date(), base = masterDay(now);
-  const session = base.kind === 'rest' ? null : applyMode(scaledSession(base, todayMinutes), todayMode);
-  const c = session ? todaySetCounts(session, isoDate(now)) : { done: 0, total: 0 };
-  return { title: base.kind === 'rest' ? 'Recovery' : (session ? session.data.title : 'Workout'), focus: base.focus || '', week: programWeek(), streak: current, best, level: levelInfo().lvl, xp: xpTotal(), workouts: Object.keys(store.completions).length, sets: c.done, totalSets: c.total, mile: bestMile() };
+  const now = new Date(), base = masterDay(now), dateKey = isoDate(now);
+  const session = base.kind === 'rest' ? null : withWarmup(applyMode(scaledSession(base, todayMinutes), todayMode));
+  const c = session ? todaySetCounts(session, dateKey) : { done: 0, total: 0 };
+  const vol = session ? sessionVolume(session, dateKey) : 0;
+  const todayRun = (store.runs || []).filter(r => r.date === dateKey && r.mi >= 0.1).sort((a, b) => b.ts - a.ts)[0];
+  const mile = todayRun ? Math.round(todayRun.secs / todayRun.mi) : bestMile();
+  const cv = store.completions[dateKey]; const mins = cv && cv.min ? cv.min : 0;
+  return { title: base.kind === 'rest' ? 'Recovery' : (session ? session.data.title : 'Workout'), focus: base.focus || '', week: programWeek(), sets: c.done, totalSets: c.total, vol, mile, mins };
 }
 function shareOverlayHTML(s) {
-  return `<div class="sh-toprow">
-      <div class="sh-brand"><i class="ti ti-bolt"></i> WORKOUT</div>
-      <div class="sh-streakpill"><i class="ti ti-flame"></i> ${s.streak} DAY${s.streak === 1 ? '' : 'S'}</div>
-    </div>
-    <div class="sh-glass">
+  return `<div class="sh-toprow"><div class="sh-brand"><i class="ti ti-bolt"></i> WORKOUT</div></div>
+    <div class="sh-details">
       <div class="sh-title">${esc(s.title)}</div>
       <div class="sh-week">WEEK ${s.week} · ${esc((s.focus || '').toUpperCase())}</div>
-      <div class="sh-statbar">
-        ${s.mile ? `<div class="sh-stat"><span class="sh-sn">${fmt(s.mile)}</span><span class="sh-sl">Mile</span></div>` : ''}
-        <div class="sh-stat"><span class="sh-sn">${s.sets}/${s.totalSets}</span><span class="sh-sl">Sets</span></div>
-        <div class="sh-stat"><span class="sh-sn">${s.xp}</span><span class="sh-sl">XP</span></div>
-        <div class="sh-stat"><span class="sh-sn">Lv ${s.level}</span><span class="sh-sl">Level</span></div>
-      </div>
+      <div class="sh-line"><span><i class="ti ti-checkbox"></i> ${s.sets}/${s.totalSets} sets</span>${s.mile ? `<span><i class="ti ti-run"></i> ${fmt(s.mile)}/mi</span>` : ''}${s.mins ? `<span><i class="ti ti-clock"></i> ${s.mins} min</span>` : ''}${s.vol ? `<span><i class="ti ti-barbell"></i> ${s.vol} lb</span>` : ''}</div>
     </div>`;
 }
 async function openShare() {
@@ -1555,25 +1569,19 @@ function closeShare() { if (shStream) { shStream.getTracks().forEach(t => t.stop
 function roundRectC(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function fitText(c, text, x, y, maxW, size, weight) { let f = size; while (f > 26) { c.font = (weight || '800') + ' ' + f + 'px sans-serif'; if (c.measureText(text).width <= maxW) break; f -= 3; } c.fillText(text, x, y); }
 function drawShareOverlay(c, W, H, s) {
-  let tg = c.createLinearGradient(0, 0, 0, 280); tg.addColorStop(0, 'rgba(0,0,0,.55)'); tg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = tg; c.fillRect(0, 0, W, 280);
-  let bg = c.createLinearGradient(0, H * 0.55, 0, H); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,.62)'); c.fillStyle = bg; c.fillRect(0, H * 0.5, W, H * 0.5);
-  // top brand badge + streak pill
+  let tg = c.createLinearGradient(0, 0, 0, 240); tg.addColorStop(0, 'rgba(0,0,0,.5)'); tg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = tg; c.fillRect(0, 0, W, 240);
+  let bg = c.createLinearGradient(0, H * 0.58, 0, H); bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,.6)'); c.fillStyle = bg; c.fillRect(0, H * 0.5, W, H * 0.5);
   c.fillStyle = '#ea580c'; roundRectC(c, 44, 50, 272, 86, 24); c.fill();
   c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 48px sans-serif'; c.fillText('⚡ WORKOUT', 70, 110);
-  const pw2 = 220; c.fillStyle = 'rgba(0,0,0,.42)'; roundRectC(c, W - 44 - pw2, 50, pw2, 86, 43); c.fill();
-  c.textAlign = 'center'; c.fillStyle = '#fb923c'; c.font = '800 48px sans-serif'; c.fillText('🔥 ' + s.streak, W - 44 - pw2 / 2, 112);
-  // glass panel
-  const px = 44, pw = W - 88, ph = 300, py = H - ph - 72;
-  c.fillStyle = 'rgba(18,22,30,.28)'; roundRectC(c, px, py, pw, ph, 30); c.fill();
-  c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 2; roundRectC(c, px, py, pw, ph, 30); c.stroke();
-  c.fillStyle = '#ea580c'; c.fillRect(px + 34, py + 40, 64, 8);
-  c.textAlign = 'left'; c.fillStyle = '#fff'; fitText(c, s.title, px + 34, py + 108, pw - 68, 62);
-  c.fillStyle = '#fb923c'; c.font = '700 30px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + s.focus).toUpperCase(), px + 34, py + 150);
-  // stat tiles
-  const tiles = [...(s.mile ? [[fmt(s.mile), 'MILE']] : []), [s.sets + '/' + s.totalSets, 'SETS'], [String(s.xp), 'XP'], ['LV ' + s.level, 'LEVEL']];
-  const ty = py + ph - 66, tw = (pw - 68) / tiles.length; c.textAlign = 'center';
-  tiles.forEach((t, i) => { const cx = px + 34 + tw * i + tw / 2; if (i > 0) { c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 2; c.beginPath(); c.moveTo(px + 34 + tw * i, ty - 42); c.lineTo(px + 34 + tw * i, ty + 30); c.stroke(); } c.fillStyle = '#fff'; c.font = '800 48px sans-serif'; c.fillText(t[0], cx, ty); c.fillStyle = 'rgba(255,255,255,.72)'; c.font = '600 24px sans-serif'; c.fillText(t[1], cx, ty + 34); });
-  c.textAlign = 'left';
+  // bottom: workout details, no box
+  c.shadowColor = 'rgba(0,0,0,.8)'; c.shadowBlur = 16;
+  c.fillStyle = '#ea580c'; c.fillRect(56, H - 262, 72, 9);
+  c.fillStyle = '#fff'; fitText(c, s.title, 56, H - 188, W - 112, 66);
+  c.fillStyle = '#fb923c'; c.font = '700 30px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + s.focus).toUpperCase(), 56, H - 144);
+  c.fillStyle = '#fff'; c.font = '800 40px sans-serif';
+  const parts = [`${s.sets}/${s.totalSets} SETS`]; if (s.mile) parts.push(fmt(s.mile) + '/MI'); if (s.mins) parts.push(s.mins + ' MIN'); if (s.vol) parts.push(s.vol + ' LB');
+  c.fillText(parts.join('   ·   '), 56, H - 82);
+  c.shadowBlur = 0;
 }
 function captureShare(stats) {
   const v = document.getElementById('shVideo');
@@ -1591,20 +1599,23 @@ function shareCard(s) {
   let rg = c.createRadialGradient(W * 0.5, -120, 60, W * 0.5, -120, 760); rg.addColorStop(0, 'rgba(234,88,12,.5)'); rg.addColorStop(1, 'rgba(234,88,12,0)'); c.fillStyle = rg; c.fillRect(0, 0, W, 780);
   c.fillStyle = '#ea580c'; roundRectC(c, 60, 74, 272, 88, 24); c.fill();
   c.fillStyle = '#fff'; c.textAlign = 'left'; c.font = '800 50px sans-serif'; c.fillText('⚡ WORKOUT', 88, 136);
-  c.fillStyle = '#fff'; fitText(c, s.title, 60, 300, W - 120, 64);
-  c.fillStyle = '#fb923c'; c.font = '700 32px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + (s.focus || '')).toUpperCase(), 60, 350);
-  c.textAlign = 'center';
-  c.fillStyle = 'rgba(255,255,255,.55)'; c.font = '800 40px sans-serif'; c.fillText('DAY STREAK', W / 2, H / 2 - 150);
-  c.fillStyle = '#f97316'; c.font = '800 320px sans-serif'; c.fillText(String(s.streak), W / 2, H / 2 + 110);
-  c.font = '110px sans-serif'; c.fillText('🔥', W / 2, H / 2 + 232);
-  const y = H - 168, step = W / 3, cell = (i, n, l) => { const x = step * i + step / 2; c.fillStyle = '#fff'; c.font = '800 62px sans-serif'; c.fillText(n, x, y); c.fillStyle = 'rgba(255,255,255,.62)'; c.font = '600 28px sans-serif'; c.fillText(l, x, y + 44); };
-  cell(0, String(s.workouts), 'WORKOUTS'); cell(1, 'LV ' + s.level, 'LEVEL'); cell(2, String(s.xp), 'XP');
+  c.fillStyle = '#ea580c'; c.fillRect(60, 250, 88, 10);
+  c.fillStyle = '#fff'; fitText(c, s.title, 60, 344, W - 120, 78);
+  c.fillStyle = '#fb923c'; c.font = '700 34px sans-serif'; c.fillText(('WEEK ' + s.week + ' · ' + (s.focus || '')).toUpperCase(), 60, 398);
+  const tiles = [[`${s.sets}/${s.totalSets}`, 'SETS COMPLETE'], ...(s.mile ? [[fmt(s.mile), 'MILE PACE']] : []), ...(s.mins ? [[s.mins + 'm', 'DURATION']] : []), ...(s.vol ? [[String(s.vol), 'VOLUME LB']] : [])];
+  const rowY = 660, rh = 150;
+  tiles.forEach((t, i) => {
+    const y = rowY + i * rh;
+    c.fillStyle = '#f97316'; c.font = '800 92px sans-serif'; c.textAlign = 'left'; c.fillText(t[0], 60, y);
+    c.fillStyle = 'rgba(255,255,255,.55)'; c.font = '600 30px sans-serif'; c.textAlign = 'right'; c.fillText(t[1], W - 60, y - 6);
+    c.strokeStyle = 'rgba(255,255,255,.1)'; c.lineWidth = 2; c.beginPath(); c.moveTo(60, y + 30); c.lineTo(W - 60, y + 30); c.stroke();
+  });
   c.textAlign = 'left';
   cv.toBlob(b => shareBlob(b, s), 'image/jpeg', 0.92);
 }
 async function shareBlob(blob, s) {
   const file = new File([blob], 'workout.jpg', { type: 'image/jpeg' });
-  const text = `Week ${s.week} · ${s.streak}-day streak · Level ${s.level} 💪⚡`;
+  const text = `${s.title} · Week ${s.week} · ${s.sets}/${s.totalSets} sets${s.mile ? ' · ' + fmt(s.mile) + '/mi' : ''} 💪⚡`;
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); closeShare(); return; } }
   catch (e) { if (e && e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'workout.jpg'; a.click();
@@ -1652,10 +1663,51 @@ function stopRun() {
 function renderRuns() {
   const runs = (store.runs || []).slice().sort((a, b) => b.ts - a.ts), bm = bestMile();
   let html = `<button class="btn primary" id="runBtn" style="margin-bottom:10px"><i class="ti ti-run"></i> Track a run</button>`;
+  const paceSeries = (store.runs || []).filter(r => r.mi >= 0.1).slice().sort((a, b) => a.ts - b.ts).map(r => ({ date: r.date, val: Math.round(r.secs / r.mi) }));
+  if (paceSeries.length >= 2) html += `<div class="an-sub" style="margin:2px 0 6px">Mile pace over time (sec/mi — lower is faster)</div>` + lineChart(paceSeries, 's/mi');
   if (bm) html += `<div class="perf-row"><span class="perf-name">Best mile</span><span class="perf-val">${fmt(bm)}</span></div>`;
   runs.slice(0, 5).forEach(r => { html += `<div class="perf-row"><span class="perf-name">${relDate(r.ts)} · ${r.mi.toFixed(2)} mi</span><span class="perf-val">${fmt(r.secs)}${r.mi >= 0.1 ? ' · ' + fmt(Math.round(r.secs / r.mi)) + '/mi' : ''}</span></div>`; });
   document.getElementById('runsBody').innerHTML = html;
   document.getElementById('runBtn').onclick = openRun;
+}
+
+/* ===== Per-exercise analytics ===== */
+function allLoggedExercises() { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); const set = {}; for (const d in logs) for (const n in logs[d]) { const e = logs[d][n]; if ((e.sets || []).some(s => s && s.done) || e.weight) set[n] = 1; } return Object.keys(set); }
+function exerciseSeries(name) {
+  const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'), out = [];
+  for (const d in logs) { const e = logs[d] && logs[d][name]; if (!e) continue; const sets = (e.sets || []).filter(s => s && s.done); if (!sets.length && !e.weight) continue; const reps = sets.reduce((a, s) => a + (+s.reps || 0), 0); const weight = +e.weight || 0; out.push({ date: d, weight, reps, vol: weight * reps }); }
+  out.sort((a, b) => a.date < b.date ? -1 : 1); return out;
+}
+function sparkline(vals, w, h) {
+  if (!vals.length) return '';
+  const mn = Math.min(...vals), mx = Math.max(...vals), rng = (mx - mn) || 1;
+  const pts = vals.map((v, i) => { const x = vals.length > 1 ? i / (vals.length - 1) * w : w / 2; const y = h - ((v - mn) / rng) * (h - 4) - 2; return x.toFixed(1) + ',' + y.toFixed(1); }).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--fill-accent)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function lineChart(series, unit, lowerBetter) {
+  if (series.length < 2) return `<div class="muted" style="font-size:13px;padding:8px 0">Log 2+ sessions to see a graph.${series.length ? ' Latest: ' + series[0].val + ' ' + unit + '.' : ''}</div>`;
+  const W = 320, H = 150, pad = 10, vals = series.map(s => s.val), mn = Math.min(...vals), mx = Math.max(...vals), rng = (mx - mn) || 1;
+  const X = i => pad + i / (series.length - 1) * (W - 2 * pad), Y = v => H - pad - ((v - mn) / rng) * (H - 2 * pad - 14);
+  const line = series.map((s, i) => `${X(i).toFixed(1)},${Y(s.val).toFixed(1)}`).join(' ');
+  const area = `${pad},${H - pad} ${line} ${(W - pad)},${H - pad}`;
+  const dots = series.map((s, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(s.val).toFixed(1)}" r="3" fill="var(--fill-accent)"/>`).join('');
+  return `<div class="an-chart"><svg viewBox="0 0 ${W} ${H}"><polygon points="${area}" fill="var(--fill-accent-weak)"/><polyline points="${line}" fill="none" stroke="var(--fill-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}<text x="${pad}" y="12" fill="var(--text-secondary)" font-size="11">${mx} ${unit}</text><text x="${pad}" y="${H - 3}" fill="var(--text-secondary)" font-size="11">${mn} ${unit}</text></svg></div>`;
+}
+function openExChart(name) {
+  const s = exerciseSeries(name), weighted = s.some(x => x.weight > 0), unit = weighted ? 'lb' : 'reps';
+  const series = s.map(x => ({ date: x.date, val: weighted ? x.weight : x.reps }));
+  const best = weighted ? Math.max(...s.map(x => x.weight)) : Math.max(...series.map(x => x.val));
+  const rows = s.slice(-10).reverse().map(x => `<div class="an-log"><span>${relDate(parseISO(x.date).getTime())}</span><span>${weighted ? (x.weight + ' lb × ' + x.reps) : (x.reps + ' reps')}</span></div>`).join('');
+  document.getElementById('exModal').innerHTML = `<div class="grab"></div><h3 class="ex-detail-title">${esc(name)}</h3><div class="ex-tags"><span class="tag"><i class="ti ti-trophy"></i> Best ${best} ${unit}</span><span class="tag"><i class="ti ti-history"></i> ${s.length} sessions</span></div>${lineChart(series, unit)}<div class="steps-h">History</div>${rows}`;
+  document.getElementById('exBack').classList.add('open');
+}
+function renderAnalytics() {
+  const names = allLoggedExercises();
+  if (!names.length) { document.getElementById('analyticsBody').innerHTML = `<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px">Log workouts and every exercise gets its own graph here.</div>`; return; }
+  let html = '';
+  names.sort().forEach(n => { const s = exerciseSeries(n); if (!s.length) return; const weighted = s.some(x => x.weight > 0), vals = s.map(x => weighted ? x.weight : x.reps), last = vals[vals.length - 1], unit = weighted ? 'lb' : 'reps'; html += `<div class="an-row" data-an="${encodeURIComponent(n)}"><div class="an-info"><div class="an-name">${esc(n)}</div><div class="an-sub">${last} ${unit} · ${s.length} session${s.length === 1 ? '' : 's'}</div></div>${sparkline(vals, 80, 32)}<i class="ti ti-chevron-right" style="color:var(--text-secondary)"></i></div>`; });
+  document.getElementById('analyticsBody').innerHTML = html;
+  document.querySelectorAll('#analyticsBody .an-row').forEach(r => r.onclick = () => openExChart(decodeURIComponent(r.dataset.an)));
 }
 
 /* ===== Achievements ===== */
@@ -1769,6 +1821,7 @@ const getDateKey = isoDate;
 function parseISO(s) { const [y, m, dd] = s.split('-').map(Number); return new Date(y, m - 1, dd); }
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 function sameDay(a, b) { return startOfDay(a).getTime() === startOfDay(b).getTime(); }
+function relDate(ts) { const diff = Math.round((startOfDay(new Date()) - startOfDay(ts)) / 86400000); if (diff === 0) return 'Today'; if (diff === 1) return 'Yesterday'; if (diff < 7 && diff > 0) return diff + ' days ago'; return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
 
 /* ---------- Per-exercise logging ---------- */
 function getLog(date, name) { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); return (logs[date] && logs[date][name]) || null; }
@@ -2105,6 +2158,7 @@ function renderProgress() {
 
   renderPerformance();
   renderMaxes();
+  renderAnalytics();
   renderRuns();
   renderBadges();
 
