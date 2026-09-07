@@ -327,12 +327,25 @@
     --fill-accent: #ea580c; --fill-accent-weak: rgba(234,88,12,0.12); --on-accent: #ffffff;
     --success: #16a34a; --success-weak: rgba(22,163,74,0.12); --on-success: #ffffff;
     --xp: #f59e0b; --streak: #f97316; --shadow-dark: rgba(0,0,0,0.22);
+    --accent-grad: linear-gradient(135deg,#fb923c 0%,#ea580c 100%); --xp-grad: linear-gradient(90deg,#fbbf24,#f59e0b);
   }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
     --fill-accent: #f97316; --fill-accent-weak: rgba(249,115,22,0.16); --on-accent: #241206;
     --success: #22c55e; --success-weak: rgba(34,197,94,0.16); --on-success: #052610;
     --xp: #fbbf24; --streak: #fb923c; --shadow-dark: rgba(0,0,0,0.5);
+    --accent-grad: linear-gradient(135deg,#fdba74 0%,#f97316 100%);
   } }
+  /* ===== v15 visual refresh ===== */
+  .btn.primary, .prog.active, .dur.active, .gb-coach, .lvl-badge, .streak-flame:not(.hot), .cbolt, .p-main.rest, .install-banner button { background: var(--accent-grad) !important; }
+  .streak-flame:not(.hot) { color: #fff; }
+  .xp-fill { background: var(--xp-grad); }
+  .card, .stat-card, .an-row, .perf-row, .machine-card, .phase-card, details.acc, .gamebar, .exercise-card { box-shadow: 0 1px 2px rgba(20,20,45,.04), 0 6px 20px rgba(20,20,45,.05); }
+  :root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { box-shadow: 0 2px 10px rgba(0,0,0,.28); }
+  header.app-bar { box-shadow: 0 2px 14px rgba(0,0,0,.06); }
+  header.app-bar h1 { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .complete-btn#startBtn { background: var(--accent-grad) !important; letter-spacing: .3px; font-size: 17px; }
+  .tab.active .ti { background: var(--fill-accent-weak); }
+  .view-title { letter-spacing: -.3px; }
 
   /* Chunky 3D buttons */
   .complete-btn, .btn.primary, .install-banner button, .dur.active {
@@ -730,7 +743,7 @@
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '14.3.0';
+const APP_VERSION = '15.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1429,17 +1442,19 @@ function wireTimer() { const g = document.getElementById('pGo'); if (!g) return;
 function goNext() { stopTick(); if (P.i < P.steps.length - 1) { P.i++; playerRender(); } }
 function goPrev() { stopTick(); if (P.i > 0) { P.i--; playerRender(); } }
 function logCurrentSet() {
-  const s = P.steps[P.i];
+  const s = P.steps[P.i], metric = exMetric(s.ex);
   const w = document.getElementById('pWeightVal'), rp = document.getElementById('pRepsVal');
-  const wt = w ? +w.textContent : 0;
-  const prevBest = bestWeight(s.ex.name);
+  const wt = w ? +w.textContent : 0, prevBest = bestWeight(s.ex.name);
   const log = getLog(P.dateKey, s.ex.name) || {};
   const sets = normalizeSets(log.sets, s.rounds, targetReps(s.ex));
-  sets[s.round - 1] = { reps: rp ? +rp.textContent : targetReps(s.ex), done: true };
-  const data = { sets }; if (w) data.weight = wt;
+  const setObj = { done: true };
+  if (metric === 'time') setObj.sec = (P.phase === 'work' ? Math.max(0, P.workSecs - Math.max(0, P.left)) : (P.workSecs || s.secs || 0)) || s.secs || 0;
+  else setObj.reps = rp ? +rp.textContent : targetReps(s.ex);
+  sets[s.round - 1] = setObj;
+  const data = { sets }; if (metric === 'weight' && w) data.weight = wt;
   saveLog(P.dateKey, s.ex.name, data);
   try { navigator.vibrate && navigator.vibrate(30); } catch (e) {}
-  if (wt > 0 && wt > prevBest) toast('New personal best — ' + wt + ' lb 💪');
+  if (metric === 'weight' && wt > 0 && wt > prevBest) toast('New personal best — ' + wt + ' lb 💪');
   if (s.circuitLast) playerRestScreen(s.rest || 45); else goNext();
 }
 function playerRestScreen(sec) {
@@ -1515,11 +1530,14 @@ function playerRender() {
   let mid = '';
   const swapBtn = `<button class="p-swap" id="pSwap"><i class="ti ti-arrows-exchange"></i> Swap exercise</button>`;
   if (s.type === 'set') {
-    const weighted = (ex.fields || []).includes('weight'), lw = lastWeight(ex.name), tr = targetReps(ex);
-    const tgt = s.secs ? `${s.secs}s hold` : `${tr} reps`;
-    const w = weighted ? `<div class="stepper" data-field="weight"><button data-dec>−</button><div class="mid"><span class="stlbl">LBS</span><span class="stval" id="pWeightVal">${lw || 0}</span></div><button data-inc>+</button></div>` : '';
-    const rp = `<div class="stepper" data-field="reps"><button data-dec>−</button><div class="mid"><span class="stlbl">REPS</span><span class="stval" id="pRepsVal">${tr}</span></div><button data-inc>+</button></div>`;
-    mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${tgt}</div><div class="p-coach">${coachCue(ex)}</div>${s.secs ? timerHTML(s.secs, true) : ''}<div class="p-logs">${w}${rp}</div>${swapBtn}`;
+    const metric = exMetric(ex), lw = lastWeight(ex.name), tr = targetReps(ex);
+    if (metric === 'time') {
+      mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${s.secs}s hold</div><div class="p-coach">${coachCue(ex)}</div>${timerHTML(s.secs, true)}<div class="p-rest-note">Logs when the hold ends — or tap Log set.</div>${swapBtn}`;
+    } else {
+      const w = metric === 'weight' ? `<div class="stepper" data-field="weight"><button data-dec>−</button><div class="mid"><span class="stlbl">LBS</span><span class="stval" id="pWeightVal">${lw || 0}</span></div><button data-inc>+</button></div>` : '';
+      const rp = `<div class="stepper" data-field="reps"><button data-dec>−</button><div class="mid"><span class="stlbl">REPS</span><span class="stval" id="pRepsVal">${tr}</span></div><button data-inc>+</button></div>`;
+      mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${tr} reps</div><div class="p-coach">${coachCue(ex)}</div><div class="p-logs">${w}${rp}</div>${swapBtn}`;
+    }
   } else {
     const runBtn = kindFor(ex.name) === 'cardio' ? `<button class="p-swap" id="pRun"><i class="ti ti-run"></i> Track a run (GPS)</button>` : '';
     mid = `<div class="p-set">${esc(ex.reps || 'Complete this movement')}</div><div class="p-coach">${ex.formNote ? esc(ex.formNote) : 'Move with control.'}</div>${s.secs ? timerHTML(s.secs, true) : ''}${runBtn}${swapBtn}`;
@@ -1531,7 +1549,8 @@ function playerRender() {
   document.getElementById('pSwap').onclick = swapCurrent;
   const pr = document.getElementById('pRun'); if (pr) pr.onclick = openRun;
   el.querySelectorAll('.p-logs .stepper').forEach(st => { const f = st.dataset.field, v = st.querySelector('.stval'), step = f === 'weight' ? 5 : 1; st.querySelector('[data-dec]').onclick = () => v.textContent = Math.max(0, (+v.textContent) - step); st.querySelector('[data-inc]').onclick = () => v.textContent = (+v.textContent) + step; });
-  if (s.secs) { wireTimer(); startTimedStep(s.secs); }
+  const autoTime = (s.type === 'do' && s.secs) || (s.type === 'set' && s.secs && exMetric(s.ex) === 'time');
+  if (autoTime) { wireTimer(); startTimedStep(s.secs); }
   document.getElementById('pDone').onclick = () => { if (s.type === 'set') logCurrentSet(); else goNext(); };
 }
 
@@ -1689,7 +1708,7 @@ function renderRuns() {
 function allLoggedExercises() { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); const set = {}; for (const d in logs) for (const n in logs[d]) { const e = logs[d][n]; if ((e.sets || []).some(s => s && s.done) || e.weight) set[n] = 1; } return Object.keys(set); }
 function exerciseSeries(name) {
   const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'), out = [];
-  for (const d in logs) { const e = logs[d] && logs[d][name]; if (!e) continue; const sets = (e.sets || []).filter(s => s && s.done); if (!sets.length && !e.weight) continue; const reps = sets.reduce((a, s) => a + (+s.reps || 0), 0); const weight = +e.weight || 0; out.push({ date: d, weight, reps, vol: weight * reps }); }
+  for (const d in logs) { const e = logs[d] && logs[d][name]; if (!e) continue; const sets = (e.sets || []).filter(s => s && s.done); if (!sets.length && !e.weight) continue; const reps = sets.reduce((a, s) => a + (+s.reps || 0), 0); const weight = +e.weight || 0; const sec = sets.length ? Math.max(0, ...sets.map(s => +s.sec || 0)) : 0; out.push({ date: d, weight, reps, sec, vol: weight * reps }); }
   out.sort((a, b) => a.date < b.date ? -1 : 1); return out;
 }
 function sparkline(vals, w, h) {
@@ -1708,10 +1727,11 @@ function lineChart(series, unit, lowerBetter) {
   return `<div class="an-chart"><svg viewBox="0 0 ${W} ${H}"><polygon points="${area}" fill="var(--fill-accent-weak)"/><polyline points="${line}" fill="none" stroke="var(--fill-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}<text x="${pad}" y="12" fill="var(--text-secondary)" font-size="11">${mx} ${unit}</text><text x="${pad}" y="${H - 3}" fill="var(--text-secondary)" font-size="11">${mn} ${unit}</text></svg></div>`;
 }
 function openExChart(name) {
-  const s = exerciseSeries(name), weighted = s.some(x => x.weight > 0), unit = weighted ? 'lb' : 'reps';
-  const series = s.map(x => ({ date: x.date, val: weighted ? x.weight : x.reps }));
-  const best = weighted ? Math.max(...s.map(x => x.weight)) : Math.max(...series.map(x => x.val));
-  const rows = s.slice(-10).reverse().map(x => `<div class="an-log"><span>${relDate(parseISO(x.date).getTime())}</span><span>${weighted ? (x.weight + ' lb × ' + x.reps) : (x.reps + ' reps')}</span></div>`).join('');
+  const s = exerciseSeries(name), hasTime = s.some(x => x.sec > 0), weighted = s.some(x => x.weight > 0);
+  const unit = hasTime ? 's' : weighted ? 'lb' : 'reps';
+  const series = s.map(x => ({ date: x.date, val: hasTime ? x.sec : weighted ? x.weight : x.reps }));
+  const best = Math.max(...series.map(x => x.val));
+  const rows = s.slice(-10).reverse().map(x => `<div class="an-log"><span>${relDate(parseISO(x.date).getTime())}</span><span>${hasTime ? (x.sec + 's hold') : weighted ? (x.weight + ' lb × ' + x.reps) : (x.reps + ' reps')}</span></div>`).join('');
   document.getElementById('exModal').innerHTML = `<div class="grab"></div><h3 class="ex-detail-title">${esc(name)}</h3><div class="ex-tags"><span class="tag"><i class="ti ti-trophy"></i> Best ${best} ${unit}</span><span class="tag"><i class="ti ti-history"></i> ${s.length} sessions</span></div>${lineChart(series, unit)}<div class="steps-h">History</div>${rows}`;
   document.getElementById('exBack').classList.add('open');
 }
@@ -1719,7 +1739,7 @@ function renderAnalytics() {
   const names = allLoggedExercises();
   if (!names.length) { document.getElementById('analyticsBody').innerHTML = `<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px">Log workouts and every exercise gets its own graph here.</div>`; return; }
   let html = '';
-  names.sort().forEach(n => { const s = exerciseSeries(n); if (!s.length) return; const weighted = s.some(x => x.weight > 0), vals = s.map(x => weighted ? x.weight : x.reps), last = vals[vals.length - 1], unit = weighted ? 'lb' : 'reps'; html += `<div class="an-row" data-an="${encodeURIComponent(n)}"><div class="an-info"><div class="an-name">${esc(n)}</div><div class="an-sub">${last} ${unit} · ${s.length} session${s.length === 1 ? '' : 's'}</div></div>${sparkline(vals, 80, 32)}<i class="ti ti-chevron-right" style="color:var(--text-secondary)"></i></div>`; });
+  names.sort().forEach(n => { const s = exerciseSeries(n); if (!s.length) return; const hasTime = s.some(x => x.sec > 0), weighted = s.some(x => x.weight > 0); const vals = s.map(x => hasTime ? x.sec : weighted ? x.weight : x.reps), last = vals[vals.length - 1], unit = hasTime ? 's' : weighted ? 'lb' : 'reps'; html += `<div class="an-row" data-an="${encodeURIComponent(n)}"><div class="an-info"><div class="an-name">${esc(n)}</div><div class="an-sub">${last} ${unit} · ${s.length} session${s.length === 1 ? '' : 's'}</div></div>${sparkline(vals, 80, 32)}<i class="ti ti-chevron-right" style="color:var(--text-secondary)"></i></div>`; });
   document.getElementById('analyticsBody').innerHTML = html;
   document.querySelectorAll('#analyticsBody .an-row').forEach(r => r.onclick = () => openExChart(decodeURIComponent(r.dataset.an)));
 }
@@ -1845,7 +1865,7 @@ function saveLog(date, name, obj) {
   logs[date][name] = Object.assign({}, logs[date][name], obj, { timestamp: Date.now() });
   localStorage.setItem('exerciseLogs', JSON.stringify(logs));
 }
-function normalizeSets(arr, count, target) { const out = []; for (let i = 0; i < count; i++) { const s = (arr && arr[i]) || {}; out.push({ reps: s.reps != null ? s.reps : target, done: !!s.done }); } return out; }
+function normalizeSets(arr, count, target) { const out = []; for (let i = 0; i < count; i++) { const s = (arr && arr[i]) || {}; out.push({ reps: s.reps != null ? s.reps : target, sec: s.sec, done: !!s.done }); } return out; }
 function getAverageWeight(name, days = 28) {
   const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
   const w = [];
@@ -1909,6 +1929,12 @@ function computeStreaks() {
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function roundsFromTitle(t) { if (!t) return 1; const m = String(t).match(/(\d+(?:\.\d+)?)\s*rounds?/i); return m ? Math.max(1, Math.round(parseFloat(m[1]))) : 1; }
 function targetReps(ex) { if (!ex.reps) return 10; const m = String(ex.reps).match(/\d+/); return m ? parseInt(m[0], 10) : 10; }
+function exMetric(ex) {
+  if (!ex.loggable) return 'none';
+  if ((ex.fields || []).includes('weight')) return 'weight';   // weighted lifts: weight × reps
+  if (stepSeconds(ex) > 0) return 'time';                       // any seconds-encoded exercise (holds, wall sit, timed carries) → seconds
+  return 'reps';                                                // bodyweight rep work
+}
 function equipHTML(ex) { return ex.equipment && ex.equipment.length ? `<div class="exercise-equipment"><i class="ti ti-barbell" aria-hidden="true"></i><span>${ex.equipment.map(esc).join(', ')}</span></div>` : ''; }
 
 function exerciseLibHTML(ex) {
