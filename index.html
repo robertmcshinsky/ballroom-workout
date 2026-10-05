@@ -346,6 +346,23 @@
   .complete-btn#startBtn { background: var(--accent-grad) !important; letter-spacing: .3px; font-size: 17px; }
   .tab.active .ti { background: var(--fill-accent-weak); }
   .view-title { letter-spacing: -.3px; }
+  .p-target { display:inline-flex; align-items:center; gap:8px; margin:2px auto 10px; padding:7px 14px; border-radius:999px; background:var(--surface-2); color:var(--text-primary); font-size:14px; }
+  .p-target b { font-family:var(--mono); font-weight:800; }
+  .p-target .up { display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:#fff; background:var(--accent-grad); padding:2px 8px; border-radius:999px; }
+  .deload-banner { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,#0ea5e9,#0369a1); color:#fff; border-radius:14px; padding:12px 14px; margin-bottom:12px; font-size:13px; }
+  .deload-banner i { font-size:20px; }
+  .onb-back { position:fixed; inset:0; z-index:60; background:rgba(10,12,18,.72); display:none; align-items:flex-end; justify-content:center; }
+  .onb-back.open { display:flex; }
+  .onb { background:var(--surface-1); width:100%; max-width:520px; max-height:92vh; overflow-y:auto; border-radius:22px 22px 0 0; padding:22px 18px calc(22px + env(safe-area-inset-bottom)); }
+  .onb h2 { font-size:21px; margin:0 0 4px; }
+  .onb .sub { color:var(--text-secondary); font-size:13px; margin-bottom:16px; }
+  .onb .fld { margin-bottom:12px; }
+  .onb .fld label { display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--text-secondary); margin-bottom:5px; }
+  .onb .fld input { width:100%; box-sizing:border-box; padding:12px 14px; border-radius:12px; border:1.5px solid var(--surface-2); background:var(--surface-0); color:var(--text-primary); font-size:16px; font-family:var(--mono); }
+  .onb .fld input:focus { outline:none; border-color:var(--fill-accent); }
+  .onb .grp-label { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--fill-accent); margin:16px 0 8px; }
+  .bw-row { display:flex; gap:8px; align-items:flex-end; }
+  .bw-row input { flex:1; box-sizing:border-box; padding:11px 13px; border-radius:11px; border:1.5px solid var(--surface-2); background:var(--surface-0); color:var(--text-primary); font-size:16px; font-family:var(--mono); }
 
   /* Chunky 3D buttons */
   .complete-btn, .btn.primary, .install-banner button, .dur.active {
@@ -602,8 +619,12 @@
     <div id="caliBody" style="display:none"></div>
     <div id="machinesBody" style="display:none"></div>
 
+    <div class="section-label">Your Baselines</div>
+    <div class="view-sub" style="margin:-4px 0 12px">Starting weights, mile time & bodyweight so the coach can set your targets.</div>
+    <div class="card" id="baselineCard"></div>
+
     <div class="section-label">Preferences</div>
-    <div class="card"><div class="rem-row"><div class="rl"><b>Audio cues</b><span>Voice + countdown beeps during workouts.</span></div><div class="switch" id="audioSwitch"><div class="knob"></div></div></div></div>
+    <div class="card"><div class="rem-row"><div class="rl"><b>Audio cues</b><span>Countdown beeps during workouts.</span></div><div class="switch" id="audioSwitch"><div class="knob"></div></div></div></div>
 
     <div class="section-label">Reminders</div>
     <div class="card" id="reminderBody"></div>
@@ -614,10 +635,12 @@
 
     <div class="section-label">Data</div>
     <div class="btn-row">
-      <button class="btn" id="exportBtn"><i class="ti ti-download"></i> Export</button>
+      <button class="btn" id="exportBtn"><i class="ti ti-download"></i> Backup</button>
+      <button class="btn" id="importBtn"><i class="ti ti-upload"></i> Restore</button>
       <button class="btn danger" id="resetBtn"><i class="ti ti-trash"></i> Reset</button>
     </div>
-    <p class="foot-note">All data is stored on this device only — nothing is uploaded.</p>
+    <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+    <p class="foot-note" id="backupNote">All data is stored on this device only — nothing is uploaded. Back up regularly: clearing your browser erases it.</p>
   </section>
 
   <!-- ============ TODAY ============ -->
@@ -699,6 +722,15 @@
       </div>
     </div>
 
+    <div class="section-label">Bodyweight</div>
+    <div class="card">
+      <div class="bw-row"><input type="number" id="bwInput" inputmode="decimal" placeholder="Weigh-in (lb)"><button class="btn primary" id="bwAdd" style="flex:0 0 110px"><i class="ti ti-plus"></i> Log</button></div>
+      <div id="bwChart" style="margin-top:12px"></div>
+    </div>
+
+    <div class="section-label">Estimated 1RM</div>
+    <div id="ormBody"></div>
+
     <div class="section-label">Strength Progress (4 Weeks)</div>
     <div id="perfBody"></div>
 
@@ -737,13 +769,14 @@
 <div class="share-cam" id="shareCam"></div>
 <div class="run-tracker" id="runTracker"></div>
 <div id="equipment-checklist"></div>
+<div class="onb-back" id="onbBack"><div class="onb" id="onbBody"></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '15.0.0';
+const APP_VERSION = '16.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1342,14 +1375,57 @@ function celebrate(status, pct) {
 }
 
 /* ===== Coaching + Personal Bests ===== */
-function lastWeight(name) { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); const days = Object.keys(logs).sort().reverse(); for (const d of days) { const ex = logs[d][name]; if (ex && ex.weight) return +ex.weight; } return null; }
-function bestWeight(name) { const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); let best = 0; for (const d in logs) { const ex = logs[d][name]; if (ex && ex.weight) best = Math.max(best, +ex.weight); } return best; }
-function coachCue(ex) {
-  const t = targetReps(ex), weighted = (ex.fields || []).includes('weight'), lw = lastWeight(ex.name);
-  if (/hold/i.test(ex.name)) return 'Hold strong — brace your core and breathe.';
-  if (weighted) return lw ? `Last time: ${lw} lb. If ${t} felt clean, add 5 lb today.` : `Pick a weight that makes the final 2 reps tough.`;
-  return `Aim for ${t} controlled reps — quality over speed.`;
+function lastWeight(name) {
+  const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); const days = Object.keys(logs).sort().reverse();
+  for (const d of days) { const ex = logs[d][name]; if (ex && ex.weight) return +ex.weight; }
+  const pm = store.profile && store.profile.maxes && store.profile.maxes[name];   // fall back to onboarding baseline
+  return pm ? +pm : null;
 }
+function bestWeight(name) {
+  const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); let best = 0;
+  for (const d in logs) { const ex = logs[d][name]; if (ex && ex.weight) best = Math.max(best, +ex.weight); }
+  const pm = store.profile && store.profile.maxes && +store.profile.maxes[name] || 0;
+  return Math.max(best, pm);
+}
+/* ---------- Progressive-overload coach ---------- */
+function weightInc(w) { return w >= 100 ? 10 : w >= 40 ? 5 : 2.5; }   // bigger jumps on bigger lifts
+function lastDoneLog(name) {   // most recent session with a completed set
+  const logs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
+  for (const d of Object.keys(logs).sort().reverse()) { const ex = logs[d][name]; if (ex && ((ex.sets || []).some(s => s && s.done) || ex.weight)) return { date: d, ex }; }
+  return null;
+}
+// Returns what to aim for THIS session, learned from last performance. { metric, weight, reps, sec, up, note, last }
+function suggestNext(ex) {
+  const metric = exMetric(ex), tr = targetReps(ex), prev = lastDoneLog(ex.name);
+  const deload = isDeloadWeek();
+  if (metric === 'weight') {
+    const lw = lastWeight(ex.name);
+    if (!lw) return { metric, weight: 0, reps: tr, up: false, note: 'Pick a weight where the last 2 reps are tough.' };
+    const sets = prev ? (prev.ex.sets || []).filter(s => s && s.done) : [];
+    const hitAll = sets.length && sets.every(s => (+s.reps || 0) >= tr);
+    if (deload) return { metric, weight: Math.max(0, Math.round((lw * 0.9) / 2.5) * 2.5), reps: tr, up: false, note: `Deload week — ease to ${Math.round(lw * 0.9)} lb, crisp reps.`, last: lw };
+    if (hitAll) { const w = lw + weightInc(lw); return { metric, weight: w, reps: tr, up: true, note: `You hit all ${tr} at ${lw} lb — step up to ${w} lb.`, last: lw }; }
+    return { metric, weight: lw, reps: tr, up: false, note: `Stay at ${lw} lb and own all ${tr} reps.`, last: lw };
+  }
+  if (metric === 'time') {
+    const base = stepSeconds(ex) || 0; const lastSec = prev ? Math.max(0, ...(prev.ex.sets || []).filter(s => s && s.done).map(s => +s.sec || 0)) : 0;
+    if (deload) return { metric, sec: base, reps: tr, up: false, note: 'Deload — hit the base time with perfect form.', last: lastSec };
+    if (lastSec && lastSec >= base) return { metric, sec: lastSec + 5, reps: tr, up: true, note: `Beat your ${lastSec}s hold — aim for ${lastSec + 5}s.`, last: lastSec };
+    return { metric, sec: base, reps: tr, up: false, note: `Lock in a strong ${base}s hold.`, last: lastSec };
+  }
+  // bodyweight reps
+  const lastReps = prev ? Math.max(0, ...(prev.ex.sets || []).filter(s => s && s.done).map(s => +s.reps || 0)) : 0;
+  if (deload) return { metric, reps: tr, up: false, note: 'Deload — clean reps, leave 2 in the tank.', last: lastReps };
+  if (lastReps && lastReps >= tr) return { metric, reps: lastReps + 2, up: true, note: `Beat your ${lastReps} — go for ${lastReps + 2} reps.`, last: lastReps };
+  return { metric, reps: tr, up: false, note: `Aim for ${tr} controlled reps.`, last: lastReps };
+}
+function est1RM(weight, reps) { if (!weight || !reps) return 0; return Math.round(weight * (1 + Math.min(reps, 12) / 30)); }   // Epley, capped reps
+function coachCue(ex) {
+  if (!ex.loggable) return ex.formNote ? esc(ex.formNote) : 'Move with control.';
+  return esc(suggestNext(ex).note);
+}
+/* ---------- Deload / periodization ---------- */
+function isDeloadWeek() { return programWeek() % 4 === 0; }   // every 4th program week is a lighter deload
 function renderMaxes() {
   const tracked = ["Straight-Legged Dead Lifts", "Squats", "Reverse Lunge", "Weighted Calf Raises", "Calf raises", "Landmine rotations", "Offset loaded carries", "Pallof press", "Glute bridges", "Dead Lift", "Overhead Hold", "Bicep Hold", "Clean to Overhead Press"];
   const seen = {}; let html = '';
@@ -1530,13 +1606,14 @@ function playerRender() {
   let mid = '';
   const swapBtn = `<button class="p-swap" id="pSwap"><i class="ti ti-arrows-exchange"></i> Swap exercise</button>`;
   if (s.type === 'set') {
-    const metric = exMetric(ex), lw = lastWeight(ex.name), tr = targetReps(ex);
+    const metric = exMetric(ex), sug = suggestNext(ex), tr = sug.reps || targetReps(ex);
+    const badge = `<div class="p-target">Target <b>${metric === 'weight' ? (sug.weight ? sug.weight + ' lb × ' + tr : tr + ' reps') : metric === 'time' ? (sug.sec || s.secs) + 's hold' : tr + ' reps'}</b>${sug.up ? '<span class="up"><i class="ti ti-trending-up"></i> level up</span>' : ''}</div>`;
     if (metric === 'time') {
-      mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${s.secs}s hold</div><div class="p-coach">${coachCue(ex)}</div>${timerHTML(s.secs, true)}<div class="p-rest-note">Logs when the hold ends — or tap Log set.</div>${swapBtn}`;
+      mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${s.secs}s hold</div>${badge}<div class="p-coach">${coachCue(ex)}</div>${timerHTML(s.secs, true)}<div class="p-rest-note">Logs when the hold ends — or tap Log set.</div>${swapBtn}`;
     } else {
-      const w = metric === 'weight' ? `<div class="stepper" data-field="weight"><button data-dec>−</button><div class="mid"><span class="stlbl">LBS</span><span class="stval" id="pWeightVal">${lw || 0}</span></div><button data-inc>+</button></div>` : '';
+      const w = metric === 'weight' ? `<div class="stepper" data-field="weight"><button data-dec>−</button><div class="mid"><span class="stlbl">LBS</span><span class="stval" id="pWeightVal">${sug.weight || 0}</span></div><button data-inc>+</button></div>` : '';
       const rp = `<div class="stepper" data-field="reps"><button data-dec>−</button><div class="mid"><span class="stlbl">REPS</span><span class="stval" id="pRepsVal">${tr}</span></div><button data-inc>+</button></div>`;
-      mid = `<div class="p-set">Set ${s.round} of ${s.rounds} · ${tr} reps</div><div class="p-coach">${coachCue(ex)}</div><div class="p-logs">${w}${rp}</div>${swapBtn}`;
+      mid = `<div class="p-set">Set ${s.round} of ${s.rounds}</div>${badge}<div class="p-coach">${coachCue(ex)}</div><div class="p-logs">${w}${rp}</div>${swapBtn}`;
     }
   } else {
     const runBtn = kindFor(ex.name) === 'cardio' ? `<button class="p-swap" id="pRun"><i class="ti ti-run"></i> Track a run (GPS)</button>` : '';
@@ -1841,6 +1918,9 @@ function saveStore() { try { localStorage.setItem(STORE_KEY, JSON.stringify(stor
 let store = loadStore();
 if (!store.completions) store.completions = {};
 if (store.audioOn === undefined) store.audioOn = true;
+if (!store.profile) store.profile = { maxes: {}, bodyweight: 0, mileSec: 0, setAt: 0 };
+if (!store.profile.maxes) store.profile.maxes = {};
+if (!store.bodyweights) store.bodyweights = [];   // [{ date:'YYYY-MM-DD', lb:Number }]
 
 /* ===== Audio cues (beeps + voice) ===== */
 let audioCtx = null;
@@ -2101,7 +2181,8 @@ function renderToday() {
   const startLabel = done ? 'Restart in guided mode' : inProgress ? `Resume · ${prog.done}/${prog.total} sets done` : 'Start workout';
   const startBtn = `<button class="complete-btn" id="startBtn" style="background:var(--fill-accent);color:var(--on-accent);border-color:var(--fill-accent);margin:0 0 14px"><span class="box" style="border:none;background:transparent;color:inherit"><i class="ti ti-player-play-filled"></i></span>${startLabel}</button>`;
   const doneCard = done ? `<div class="card" style="background:${status === 'partial' ? 'var(--streak)' : 'var(--success)'};color:#fff;border:none;display:flex;align-items:center;gap:12px"><i class="ti ti-circle-check" style="font-size:26px"></i><div style="flex:1"><b>${status === 'partial' ? 'Logged ' + completionPct(now) + '% today' : 'Workout complete today'}</b><div style="font-size:12px;opacity:.9">Nice work.</div></div><button class="p-close" id="clearBtn" style="background:rgba(255,255,255,.22);color:#fff"><i class="ti ti-x"></i></button></div>` : '';
-  body.innerHTML = startBtn + doneCard + `<div class="section-label" style="margin-top:8px">Today · ${totalEx} exercises · ~${todayMinutes} min</div><div class="card">${summary}</div><p class="foot-note">Tap an exercise for how-to · complete your workout in guided mode.</p>`;
+  const deloadBanner = isDeloadWeek() ? `<div class="deload-banner"><i class="ti ti-battery-charging"></i><div><b>Deload week</b> — back off ~10% and move crisp. Recovery is where you grow.</div></div>` : '';
+  body.innerHTML = deloadBanner + startBtn + doneCard + `<div class="section-label" style="margin-top:8px">Today · ${totalEx} exercises · ~${todayMinutes} min</div><div class="card">${summary}</div><p class="foot-note">Tap an exercise for how-to · complete your workout in guided mode.</p>`;
   document.getElementById('startBtn').onclick = openPlayer;
   const cb = document.getElementById('clearBtn'); if (cb) cb.onclick = () => { setCompleted(now, false); renderToday(); renderCalendar(); renderProgress(); toast('Cleared'); };
 }
@@ -2196,6 +2277,8 @@ function renderProgress() {
   document.getElementById('mPctVal').textContent = mPct + '%';
   document.getElementById('mPctBar').style.width = mPct + '%';
 
+  renderBodyweight();
+  renderOneRM();
   renderPerformance();
   renderMaxes();
   renderAnalytics();
@@ -2255,7 +2338,7 @@ function switchView(name) {
   window.scrollTo({ top: 0 });
   if (name === 'calendar') renderCalendar();
   if (name === 'progress') renderProgress();
-  if (name === 'settings') { renderTest(); renderReminders(); updateAudioSwitch(); }
+  if (name === 'settings') { renderTest(); renderReminders(); updateAudioSwitch(); renderBaselines(); }
 }
 function updateAudioSwitch() { const sw = document.getElementById('audioSwitch'); if (sw) sw.classList.toggle('on', !!store.audioOn); }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
@@ -2278,17 +2361,36 @@ document.getElementById('themeBtn').onclick = () => {
 /* ---------- Data actions ---------- */
 document.getElementById('resetBtn').onclick = () => {
   if (confirm('Reset ALL workout data on this device (including logged sets/weights)? This cannot be undone.')) {
-    const theme = store.theme; store = { completions: {}, theme }; saveStore(); localStorage.removeItem('exerciseLogs');
-    renderToday(); renderCalendar(); renderProgress(); toast('All data cleared');
+    const theme = store.theme; store = { completions: {}, theme, profile: { maxes: {}, bodyweight: 0, mileSec: 0, setAt: 0 }, bodyweights: [] }; saveStore(); localStorage.removeItem('exerciseLogs');
+    renderToday(); renderCalendar(); renderProgress(); renderBaselines(); toast('All data cleared');
   }
 };
 document.getElementById('exportBtn').onclick = () => {
   const exerciseLogs = JSON.parse(localStorage.getItem('exerciseLogs') || '{}');
-  const blob = new Blob([JSON.stringify({ app: 'Workout Tracker', version: APP_VERSION, exported: isoDate(new Date()), completions: store.completions, exerciseLogs }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ app: 'Workout Tracker', version: APP_VERSION, exported: isoDate(new Date()), completions: store.completions, exerciseLogs, profile: store.profile, bodyweights: store.bodyweights, runs: store.runs || [] }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'ballroom-workout-data.json'; a.click();
+  a.href = URL.createObjectURL(blob); a.download = 'workout-backup-' + isoDate(new Date()) + '.json'; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  toast('Data exported');
+  toast('Backup saved');
+};
+document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!confirm('Restore this backup? It merges into your current data on this device.')) return;
+      if (d.completions) Object.assign(store.completions, d.completions);
+      if (d.exerciseLogs) { const cur = JSON.parse(localStorage.getItem('exerciseLogs') || '{}'); Object.keys(d.exerciseLogs).forEach(day => { cur[day] = Object.assign({}, cur[day], d.exerciseLogs[day]); }); localStorage.setItem('exerciseLogs', JSON.stringify(cur)); }
+      if (d.profile) store.profile = Object.assign(store.profile || { maxes: {} }, d.profile);
+      if (Array.isArray(d.bodyweights)) store.bodyweights = d.bodyweights;
+      if (Array.isArray(d.runs)) store.runs = d.runs;
+      saveStore(); renderToday(); renderCalendar(); renderProgress(); renderBaselines();
+      toast('Backup restored');
+    } catch (err) { toast('Could not read that file'); }
+  };
+  r.readAsText(f); e.target.value = '';
 };
 
 /* =====================================================================
@@ -2324,6 +2426,82 @@ window.addEventListener('appinstalled', () => { document.getElementById('install
   if (isIOS && !standalone) { const b = document.getElementById('installBanner'); b.querySelector('.txt').innerHTML = '<b>Install for offline access</b>Tap Share, then “Add to Home Screen”.'; document.getElementById('installBtn').style.display = 'none'; b.classList.add('show'); }
 })();
 
+/* =====================================================================
+   v16: baselines / onboarding, bodyweight log, estimated 1RM, data restore
+   ===================================================================== */
+const BASELINE_LIFTS = [
+  { name: 'Squats', label: 'Back Squat' },
+  { name: 'Dead Lift', label: 'Deadlift' },
+  { name: 'Clean to Overhead Press', label: 'Overhead Press' },
+  { name: 'Reverse Lunge', label: 'Reverse Lunge' },
+];
+function parseMile(str) { str = String(str || '').trim(); if (!str) return 0; if (/^\d+(\.\d+)?$/.test(str)) return Math.round(parseFloat(str) * 60); const m = str.match(/^(\d+):(\d{1,2})$/); return m ? (+m[1] * 60 + +m[2]) : 0; }
+function profileComplete() { return !!(store.profile && store.profile.setAt > 0); }
+function onbFieldsHTML() {
+  const p = store.profile || { maxes: {} };
+  const lift = l => `<div class="fld"><label>${esc(l.label)}</label><input type="number" inputmode="decimal" data-max="${esc(l.name)}" value="${p.maxes[l.name] || ''}" placeholder="working weight (lb)"></div>`;
+  return `<div class="fld"><label>Bodyweight (lb)</label><input type="number" inputmode="decimal" id="onbBW" value="${p.bodyweight || ''}" placeholder="e.g. 175"></div>
+    <div class="fld"><label>Current mile time (mm:ss)</label><input type="text" inputmode="numeric" id="onbMile" value="${p.mileSec ? fmt(p.mileSec) : ''}" placeholder="e.g. 8:30"></div>
+    <div class="grp-label">Working weights — leave blank if unsure</div>${BASELINE_LIFTS.map(lift).join('')}`;
+}
+function openOnboarding(first) {
+  const el = document.getElementById('onbBody');
+  el.innerHTML = `<h2>${first ? 'Welcome — set your baseline' : 'Edit your baselines'}</h2>
+    <div class="sub">Takes 60 seconds. The coach uses these to set your first targets and level you up each session. Skip and fill them later in Settings if you like.</div>
+    ${onbFieldsHTML()}
+    <div class="btn-row" style="margin-top:16px"><button class="btn primary" id="onbSave" style="flex:1"><i class="ti ti-check"></i> Save</button>${first ? '<button class="btn" id="onbSkip">Skip</button>' : '<button class="btn" id="onbCancel">Cancel</button>'}</div>`;
+  document.getElementById('onbBack').classList.add('open');
+  document.getElementById('onbSave').onclick = saveOnboarding;
+  const sk = document.getElementById('onbSkip'); if (sk) sk.onclick = () => { store.profile.setAt = Date.now(); saveStore(); closeOnboarding(); };
+  const cn = document.getElementById('onbCancel'); if (cn) cn.onclick = closeOnboarding;
+}
+function saveOnboarding() {
+  const el = document.getElementById('onbBody');
+  const bw = parseFloat(el.querySelector('#onbBW').value) || 0;
+  const mile = parseMile(el.querySelector('#onbMile').value);
+  store.profile.bodyweight = bw; store.profile.mileSec = mile; store.profile.setAt = Date.now();
+  el.querySelectorAll('[data-max]').forEach(inp => { const v = parseFloat(inp.value); if (v > 0) store.profile.maxes[inp.dataset.max] = v; else delete store.profile.maxes[inp.dataset.max]; });
+  if (bw > 0) { const k = isoDate(new Date()); const ex = store.bodyweights.find(b => b.date === k); if (ex) ex.lb = bw; else store.bodyweights.push({ date: k, lb: bw }); }
+  saveStore(); closeOnboarding(); renderToday(); renderBaselines(); renderProgress(); toast('Baselines saved — targets updated');
+}
+function closeOnboarding() { document.getElementById('onbBack').classList.remove('open'); }
+function renderBaselines() {
+  const el = document.getElementById('baselineCard'); if (!el) return;
+  const p = store.profile || { maxes: {} };
+  const rows = [['Bodyweight', p.bodyweight ? p.bodyweight + ' lb' : '—'], ['Mile time', p.mileSec ? fmt(p.mileSec) : '—'], ...BASELINE_LIFTS.map(l => [l.label, p.maxes[l.name] ? p.maxes[l.name] + ' lb' : '—'])];
+  el.innerHTML = rows.map(([k, v]) => `<div class="perf-row"><span class="perf-name">${esc(k)}</span><span class="perf-val">${esc(v)}</span></div>`).join('') + `<button class="btn" id="editBaseline" style="margin-top:12px;width:100%"><i class="ti ti-edit"></i> Edit baselines</button>`;
+  document.getElementById('editBaseline').onclick = () => openOnboarding(false);
+}
+function logBodyweight() {
+  const inp = document.getElementById('bwInput'); const v = parseFloat(inp.value);
+  if (!v || v <= 0) { toast('Enter a weight first'); return; }
+  const k = isoDate(new Date());
+  const ex = store.bodyweights.find(b => b.date === k); if (ex) ex.lb = v; else store.bodyweights.push({ date: k, lb: v });
+  store.bodyweights.sort((a, b) => a.date < b.date ? -1 : 1);
+  if (store.profile) store.profile.bodyweight = v;
+  saveStore(); inp.value = ''; renderBodyweight(); toast('Logged ' + v + ' lb');
+}
+function renderBodyweight() {
+  const el = document.getElementById('bwChart'); if (!el) return;
+  const bw = (store.bodyweights || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  if (!bw.length) { el.innerHTML = `<div class="muted" style="font-size:13px">Log weigh-ins to see your trend.</div>`; return; }
+  const latest = bw[bw.length - 1], first = bw[0], delta = latest.lb - first.lb;
+  const series = bw.map(b => ({ date: b.date, val: b.lb }));
+  el.innerHTML = `<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px"><span style="font-family:var(--mono);font-weight:800;font-size:22px">${latest.lb} lb</span>${bw.length > 1 ? `<span class="muted" style="font-size:12px">${delta >= 0 ? '+' : ''}${(+delta.toFixed(1))} lb since ${relDate(parseISO(first.date).getTime())}</span>` : ''}</div>${lineChart(series, 'lb')}`;
+}
+function doneSetCount(date, name) { const l = getLog(date, name); return l && l.sets ? l.sets.filter(s => s && s.done).length : 0; }
+function renderOneRM() {
+  const el = document.getElementById('ormBody'); if (!el) return;
+  const names = allLoggedExercises();
+  const html = names.map(n => {
+    const s = exerciseSeries(n).filter(x => x.weight > 0 && x.reps > 0); if (!s.length) return '';
+    let best = 0;
+    s.forEach(x => { const sc = doneSetCount(x.date, n) || 1; const perSet = Math.max(1, Math.round(x.reps / sc)); best = Math.max(best, est1RM(x.weight, perSet)); });
+    return best > 0 ? `<div class="perf-row"><span class="perf-name">${esc(n)}</span><span class="perf-val">${best} lb</span></div>` : '';
+  }).join('');
+  el.innerHTML = html || `<div class="card" style="text-align:center;color:var(--text-secondary);font-size:13px">Log a weighted lift to see your estimated 1-rep max (Epley).</div>`;
+}
+
 /* ---------- Boot ---------- */
 applyTheme(store.theme || null);
 document.getElementById('verTag').textContent = 'v' + APP_VERSION;
@@ -2340,8 +2518,12 @@ renderCalendar();
 renderProgress();
 renderReminders();
 renderTest();
+renderBaselines();
 updateAudioSwitch();
 (function () { const asw = document.getElementById('audioSwitch'); if (asw) asw.onclick = () => { store.audioOn = !store.audioOn; saveStore(); updateAudioSwitch(); if (store.audioOn) { ensureAudio(); beep(880, 0.1, 0.2); } toast(store.audioOn ? 'Audio cues on' : 'Audio cues off'); }; })();
+(function () { const b = document.getElementById('bwAdd'), i = document.getElementById('bwInput'); if (b) b.onclick = logBodyweight; if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') logBodyweight(); }); })();
+document.getElementById('onbBack').addEventListener('click', e => { if (e.target.id === 'onbBack') closeOnboarding(); });
+if (!profileComplete()) setTimeout(() => openOnboarding(true), 500);   // first-run baseline setup
 scheduleReminder();
 // In-app nudge: if reminders on, not done today, and past reminder time
 (function nudge() {
