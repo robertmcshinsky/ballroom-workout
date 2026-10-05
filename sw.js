@@ -2,7 +2,7 @@
    Provides offline support. Auto-detects its own base path, so it works
    whether the app lives at /ballroom-workout/ or a custom-domain root. */
 
-const VERSION = 'workout-v16';
+const VERSION = 'workout-v17';
 // The scope's directory, e.g. "/ballroom-workout/" or "/"
 const BASE = self.registration.scope.replace(self.location.origin, '');
 

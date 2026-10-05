@@ -352,6 +352,7 @@
   .deload-banner { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,#0ea5e9,#0369a1); color:#fff; border-radius:14px; padding:12px 14px; margin-bottom:12px; font-size:13px; }
   .deload-banner i { font-size:20px; }
   .onb-back { position:fixed; inset:0; z-index:60; background:rgba(10,12,18,.72); display:none; align-items:flex-end; justify-content:center; }
+  #swapBack { z-index:95; }   /* above the fullscreen player (z-90) */
   .onb-back.open { display:flex; }
   .onb { background:var(--surface-1); width:100%; max-width:520px; max-height:92vh; overflow-y:auto; border-radius:22px 22px 0 0; padding:22px 18px calc(22px + env(safe-area-inset-bottom)); }
   .onb h2 { font-size:21px; margin:0 0 4px; }
@@ -363,6 +364,71 @@
   .onb .grp-label { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--fill-accent); margin:16px 0 8px; }
   .bw-row { display:flex; gap:8px; align-items:flex-end; }
   .bw-row input { flex:1; box-sizing:border-box; padding:11px 13px; border-radius:11px; border:1.5px solid var(--surface-2); background:var(--surface-0); color:var(--text-primary); font-size:16px; font-family:var(--mono); }
+  .sw-opt { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:14px; border:1.5px solid var(--surface-2); background:var(--surface-0); color:var(--text-primary); border-radius:14px; margin-bottom:8px; cursor:pointer; transition:transform .08s, border-color .15s; }
+  .sw-opt:active { transform:scale(.985); border-color:var(--fill-accent); }
+  .sw-nm { font-weight:700; font-size:15px; flex:1; }
+  .sw-rt { font-family:var(--mono); font-size:13px; color:var(--text-secondary); }
+  .sw-tag { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; padding:3px 8px; border-radius:999px; white-space:nowrap; }
+  .sw-tag.wt { background:var(--fill-accent-weak); color:var(--fill-accent); }
+  .sw-tag.bw { background:var(--surface-2); color:var(--text-secondary); }
+  .sw-tag.tm { background:rgba(14,165,233,.16); color:#0ea5e9; }
+
+  /* ========================================================================
+     v17 design system — glass chrome, depth, motion. DOM-safe (CSS only).
+     ======================================================================== */
+  :root { --radius-card:18px; --glass:rgba(255,255,255,.74); --glass-brd:rgba(20,22,45,.07);
+    --shadow-soft:0 1px 2px rgba(18,22,40,.05), 0 10px 28px rgba(18,22,40,.07);
+    --shadow-glow:0 8px 26px rgba(234,88,12,.32); }
+  :root[data-theme="dark"], :root:not([data-theme="light"]) { --glass:rgba(24,28,37,.66); --glass-brd:rgba(255,255,255,.08);
+    --shadow-soft:0 2px 14px rgba(0,0,0,.34); --shadow-glow:0 8px 26px rgba(249,115,22,.34); }
+
+  body { position:relative; }
+  body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(900px 480px at 85% -8%, rgba(251,146,60,.16), transparent 60%),
+      radial-gradient(760px 420px at -10% 4%, rgba(234,88,12,.10), transparent 55%); }
+
+  /* Glass header — sticky & blurred */
+  header.app-bar { position:sticky; top:0; z-index:30; background:var(--glass); backdrop-filter:saturate(1.6) blur(16px); -webkit-backdrop-filter:saturate(1.6) blur(16px); border-bottom:1px solid var(--glass-brd); box-shadow:none; }
+
+  /* Cards — rounder, layered depth, subtle hairline */
+  .card, .stat-card, .machine-card, .phase-card, details.acc, .gamebar, .exercise-card, .t-card {
+    border-radius:var(--radius-card) !important; box-shadow:var(--shadow-soft) !important; border:1px solid var(--glass-brd) !important; transition:transform .12s ease, box-shadow .18s ease; }
+
+  /* Buttons — press feedback + gradient glow on primary */
+  .btn, .complete-btn, .dur, .prog, .cal-nav, .icon-btn, .p-close, .tab, .sw-opt, .perf-row { transition:transform .1s ease, box-shadow .18s ease, background .15s ease, color .15s ease; }
+  .btn:active, .complete-btn:active, .dur:active, .prog:active, .sw-opt:active, .icon-btn:active { transform:scale(.97); }
+  .btn.primary, .complete-btn#startBtn { box-shadow:var(--shadow-glow) !important; }
+  .complete-btn#startBtn { border-radius:16px; padding:18px; font-size:17px; letter-spacing:.3px; }
+  .complete-btn#startBtn:not(:active) { animation:startPulse 2.8s ease-in-out infinite; }
+  @keyframes startPulse { 0%,100%{ box-shadow:0 8px 26px rgba(234,88,12,.30); } 50%{ box-shadow:0 10px 34px rgba(234,88,12,.46); } }
+
+  /* Pills — duration / mode / status */
+  .dur { border-radius:999px; }
+  .dur.active { box-shadow:0 4px 14px rgba(234,88,12,.32); }
+  .status-pill { border-radius:999px; }
+
+  /* Section labels — accent tick */
+  .section-label { position:relative; padding-left:12px; }
+  .section-label::before { content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:14px; border-radius:3px; background:var(--accent-grad); }
+
+  /* Glass bottom tab bar with lifting active state */
+  nav.tabbar { background:var(--glass); backdrop-filter:saturate(1.6) blur(18px); -webkit-backdrop-filter:saturate(1.6) blur(18px); border-top:1px solid var(--glass-brd); }
+  nav.tabbar .tab { position:relative; transition:color .15s ease, transform .12s ease; }
+  nav.tabbar .tab i { transition:transform .18s cubic-bezier(.3,1.4,.5,1); }
+  nav.tabbar .tab.active { color:var(--fill-accent); }
+  nav.tabbar .tab.active i { transform:translateY(-3px) scale(1.14); }
+  nav.tabbar .tab.active::after { content:""; position:absolute; top:4px; left:50%; transform:translateX(-50%); width:26px; height:26px; border-radius:50%; background:var(--fill-accent-weak); z-index:-1; }
+
+  /* View transition — subtle rise/fade on switch */
+  .view.active { animation:viewIn .34s cubic-bezier(.22,.8,.3,1); }
+  @keyframes viewIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* Headings polish */
+  .view-title { font-weight:800; letter-spacing:-.5px; }
+  .today-date { letter-spacing:-.4px; }
+
+  @media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation:none !important; transition:none !important; } }
 
   /* Chunky 3D buttons */
   .complete-btn, .btn.primary, .install-banner button, .dur.active {
@@ -625,6 +691,7 @@
 
     <div class="section-label">Preferences</div>
     <div class="card"><div class="rem-row"><div class="rl"><b>Audio cues</b><span>Countdown beeps during workouts.</span></div><div class="switch" id="audioSwitch"><div class="knob"></div></div></div></div>
+    <div class="card"><div class="rem-row"><div class="rl"><b>Always open with a mile</b><span>Off = smart warm-up tailored to the day (leg prep, upper prep, or cardio).</span></div><div class="switch" id="mileSwitch"><div class="knob"></div></div></div></div>
 
     <div class="section-label">Reminders</div>
     <div class="card" id="reminderBody"></div>
@@ -770,13 +837,14 @@
 <div class="run-tracker" id="runTracker"></div>
 <div id="equipment-checklist"></div>
 <div class="onb-back" id="onbBack"><div class="onb" id="onbBody"></div></div>
+<div class="onb-back" id="swapBack"><div class="onb" id="swapBody"></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 /* =====================================================================
    BALLROOM WORKOUT TRACKER — single-file PWA (v6)
    ===================================================================== */
-const APP_VERSION = '16.0.0';
+const APP_VERSION = '17.0.0';
 const BASE = location.pathname.replace(/[^/]*$/, '');
 
 /* ---------- Reusable exercise definitions ---------- */
@@ -1297,10 +1365,26 @@ function applyMode(session, mode) {
   if (!session || mode === 'full') return session;
   return Object.assign({}, session, { data: Object.assign({}, session.data, { blocks: session.data.blocks.map(b => Object.assign({}, b, { exercises: b.exercises.map(ex => subExercise(ex, mode)) })) }) });
 }
+/* ===== Day-aware warm-ups ===== */
+function wuMove(name, reps, note) { return { name, reps, loggable: false, formNote: note }; }
+function mileMove() { return wuMove('Mile run', '1 mile', 'Easy pace to open the session. Tap “Track a run (GPS)” for live pace.'); }
+function warmupBlock(kind) {
+  const jog = wuMove('Easy jog', '3 min', 'Light jog or treadmill to raise your heart rate before you load up.');
+  if (kind === 'ball') {   // ballroom / cardio day — keep the mile, add mobility
+    return { title: 'Warm-up · cardio + mobility', exercises: [mileMove(), wuMove('Leg swings', '10/leg', 'Hold a wall; swing each leg front-to-back with control.'), wuMove('Arm swings', '20', 'Big, loose swings to open the shoulders.')] };
+  }
+  if (kind === 'cali') {   // upper-body strength day — prime the pulling/pressing muscles
+    return { title: 'Warm-up · upper prep', exercises: [jog, wuMove('Arm circles', '20', 'Forward then back, building the range.'), wuMove('Band pull-aparts', '15', 'Pull a band apart at chest height; squeeze the shoulder blades.'), wuMove('Scapular pulls', '8', 'Hang and pull your shoulder blades down without bending the elbows.'), wuMove('Incline push-ups', '10', 'Hands elevated — prime the chest and triceps.')] };
+  }
+  // legs / total-body strength day — raise temp, open hips, then ramp the first lift
+  return { title: 'Warm-up · leg prep + ramp sets', exercises: [jog, wuMove('Bodyweight squats', '15', 'Full depth, drive through the heels.'), wuMove('Walking lunges', '10/leg', 'Long, controlled steps; knee tracks over the foot.'), wuMove('Leg swings', '10/leg', 'Front-to-back then side-to-side to open the hips.'), wuMove('Ramp-up sets', '2 sets', 'Before your first heavy lift, do 2 lighter sets (~50% then ~75% of your working weight) to groove the movement — then load up.')] };
+}
 function withWarmup(session) {
   if (!session || !session.data || !session.data.blocks) return session;
-  const mile = { title: 'Warm-up', exercises: [{ name: 'Mile run', reps: '1 mile', loggable: false, formNote: 'Start every session with an easy mile. Tap “Track a run (GPS)” for live pace.' }] };
-  return Object.assign({}, session, { data: Object.assign({}, session.data, { blocks: [mile, ...session.data.blocks] }) });
+  const wu = store.alwaysMile
+    ? { title: 'Warm-up · mile run', exercises: [mileMove()] }
+    : warmupBlock(session.kind || 'legs');
+  return Object.assign({}, session, { data: Object.assign({}, session.data, { blocks: [wu, ...session.data.blocks] }) });
 }
 
 /* ===== Gamification ===== */
@@ -1578,14 +1662,48 @@ function firstIncomplete(steps, dateKey) {
   for (let k = 0; k < steps.length; k++) { const s = steps[k]; if (s.type === 'set') { const l = getLog(dateKey, s.ex.name); const done = l && Array.isArray(l.sets) && l.sets[s.round - 1] && l.sets[s.round - 1].done; if (!done) return k; } }
   return steps.length - 1;
 }
-function swapCurrent() {
-  const s = P.steps[P.i]; if (!s.ex) return;
-  const alt = subExercise(s.ex, 'none');
-  if (alt.name === s.ex.name) { toast('No substitute available'); return; }
-  const orig = s.ex.name;
-  P.steps.forEach(st => { if (st.ex && st.ex.name === orig) { st.ex = alt; st.secs = stepSeconds(alt); } });
-  playerRender(); toast('Swapped to ' + alt.name);
+/* ===== Smarter swap picker ===== */
+const SWAP_GROUPS = [
+  { re: /squat|leg press|hack|goblet/i, alts: [['Goblet squat', '12', ['weight', 'reps']], ['Back squat', '8', ['weight', 'reps']], ['Front squat', '8', ['weight', 'reps']], ['Bulgarian split squat', '10/leg', ['weight', 'reps']], ['Leg press', '12', ['weight', 'reps']], ['Bodyweight squat', '20', ['reps']]] },
+  { re: /dead ?lift|romanian|rdl|stiff|hinge|good ?morning/i, alts: [['Romanian deadlift', '10', ['weight', 'reps']], ['Trap-bar deadlift', '6', ['weight', 'reps']], ['Conventional deadlift', '5', ['weight', 'reps']], ['Single-leg RDL', '10/leg', ['weight', 'reps']], ['Hip hinge', '12', ['reps']], ['Glute bridge', '15', ['reps']]] },
+  { re: /lunge|split squat|step-?up/i, alts: [['Reverse lunge', '10/leg', ['weight', 'reps']], ['Walking lunge', '10/leg', ['weight', 'reps']], ['Bulgarian split squat', '10/leg', ['weight', 'reps']], ['Step-up', '10/leg', ['weight', 'reps']]] },
+  { re: /overhead|shoulder press|military|clean|pike|handstand|arnold|push press/i, alts: [['DB shoulder press', '10', ['weight', 'reps']], ['Barbell overhead press', '6', ['weight', 'reps']], ['Push press', '6', ['weight', 'reps']], ['Arnold press', '10', ['weight', 'reps']], ['Pike push-up', '10', ['reps']]] },
+  { re: /bench|chest|pec|push-?up|dip|incline press/i, alts: [['Push-up', '15', ['reps']], ['DB bench press', '10', ['weight', 'reps']], ['Barbell bench press', '6', ['weight', 'reps']], ['Weighted dip', '8', ['weight', 'reps']], ['Incline DB press', '10', ['weight', 'reps']]] },
+  { re: /row|pull-?up|chin-?up|lat ?pull|pulldown|rear delt|inverted/i, alts: [['Pull-up', '8', ['reps']], ['Chin-up', '8', ['reps']], ['Inverted row', '10', ['reps']], ['DB row', '10', ['weight', 'reps']], ['Barbell row', '8', ['weight', 'reps']], ['Lat pulldown', '10', ['weight', 'reps']]] },
+  { re: /curl|bicep|preacher/i, alts: [['DB curl', '10', ['weight', 'reps']], ['Hammer curl', '10', ['weight', 'reps']], ['Barbell curl', '8', ['weight', 'reps']], ['Chin-up', '8', ['reps']]] },
+  { re: /tricep|pushdown|overhead ext|skull/i, alts: [['Close-grip push-up', '15', ['reps']], ['DB overhead triceps', '12', ['weight', 'reps']], ['Bench dip', '12', ['reps']], ['Triceps pushdown', '12', ['weight', 'reps']]] },
+  { re: /calf|calve/i, alts: [['Standing calf raise', '15', ['weight', 'reps']], ['Single-leg calf raise', '12/leg', ['reps']], ['Seated calf raise', '15', ['weight', 'reps']]] },
+  { re: /plank|hollow|dead ?bug|pallof|russian|landmine|anti-?rot|core|\bab/i, alts: [['Plank', '45s', ['reps']], ['Hanging leg raise', '10', ['reps']], ['Hollow hold', '30s', ['reps']], ['Ab wheel rollout', '10', ['reps']], ['Pallof press', '12', ['reps']]] },
+  { re: /carr|farmer|march/i, alts: [['Farmer carry', '40s', ['weight']], ['Suitcase carry', '30s/side', ['weight']], ['Trap-bar carry', '40s', ['weight']]] },
+];
+function altsFor(ex) {
+  const cur = (ex.name || '').toLowerCase(), out = [];
+  const push = (name, reps, fields, note) => { if (!name || name.toLowerCase() === cur) return; if (out.some(o => o.name.toLowerCase() === name.toLowerCase())) return; out.push({ name, reps, loggable: true, fields: fields || ['reps'], formNote: note || '' }); };
+  ['minimal', 'none'].forEach(m => { const a = subExercise(ex, m); if (a) push(a.name, a.reps, a.fields, a.formNote); });   // equipment variants first
+  const g = SWAP_GROUPS.find(x => x.re.test(ex.name || ''));
+  if (g) g.alts.forEach(a => push(a[0], a[1], a[2], ''));
+  return out;
 }
+function swapCurrent() {   // opens the picker sheet
+  const s = P.steps[P.i]; if (!s.ex) return;
+  const alts = altsFor(s.ex);
+  if (!alts.length) { toast('No substitute available'); return; }
+  const el = document.getElementById('swapBody');
+  const tag = a => (a.fields || []).includes('weight') ? '<span class="sw-tag wt">weighted</span>' : stepSeconds(a) > 0 ? '<span class="sw-tag tm">timed</span>' : '<span class="sw-tag bw">bodyweight</span>';
+  el.innerHTML = `<div class="grab"></div><h3 class="ex-detail-title">Swap “${esc(s.ex.name)}”</h3><div class="sub" style="color:var(--text-secondary);font-size:13px;margin:-2px 0 14px">Same movement pattern — pick what fits your gear or joints.</div>` +
+    alts.map((a, i) => `<button class="sw-opt" data-i="${i}"><span class="sw-nm">${esc(a.name)}</span><span class="sw-rt">${esc(a.reps || '')}</span>${tag(a)}</button>`).join('') +
+    `<button class="btn" id="swapCancel" style="width:100%;margin-top:12px">Keep current</button>`;
+  P._swapAlts = alts;
+  document.getElementById('swapBack').classList.add('open');
+  el.querySelectorAll('.sw-opt').forEach(b => b.onclick = () => chooseSwap(P._swapAlts[+b.dataset.i]));
+  document.getElementById('swapCancel').onclick = closeSwap;
+}
+function chooseSwap(alt) {
+  const s = P.steps[P.i]; if (!s || !alt) return; const orig = s.ex.name;
+  P.steps.forEach(st => { if (st.ex && st.ex.name === orig) { st.ex = alt; st.secs = stepSeconds(alt); } });
+  closeSwap(); playerRender(); toast('Swapped to ' + alt.name);
+}
+function closeSwap() { document.getElementById('swapBack').classList.remove('open'); }
 function playerRender() {
   P.phase = 'work';
   const el = document.getElementById('player'), s = P.steps[P.i];
@@ -1921,6 +2039,7 @@ if (store.audioOn === undefined) store.audioOn = true;
 if (!store.profile) store.profile = { maxes: {}, bodyweight: 0, mileSec: 0, setAt: 0 };
 if (!store.profile.maxes) store.profile.maxes = {};
 if (!store.bodyweights) store.bodyweights = [];   // [{ date:'YYYY-MM-DD', lb:Number }]
+if (store.alwaysMile === undefined) store.alwaysMile = false;   // force a 1-mile opener on every day
 
 /* ===== Audio cues (beeps + voice) ===== */
 let audioCtx = null;
@@ -2338,7 +2457,7 @@ function switchView(name) {
   window.scrollTo({ top: 0 });
   if (name === 'calendar') renderCalendar();
   if (name === 'progress') renderProgress();
-  if (name === 'settings') { renderTest(); renderReminders(); updateAudioSwitch(); renderBaselines(); }
+  if (name === 'settings') { renderTest(); renderReminders(); updateAudioSwitch(); renderBaselines(); const ms = document.getElementById('mileSwitch'); if (ms) ms.classList.toggle('on', !!store.alwaysMile); }
 }
 function updateAudioSwitch() { const sw = document.getElementById('audioSwitch'); if (sw) sw.classList.toggle('on', !!store.audioOn); }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
@@ -2523,6 +2642,8 @@ updateAudioSwitch();
 (function () { const asw = document.getElementById('audioSwitch'); if (asw) asw.onclick = () => { store.audioOn = !store.audioOn; saveStore(); updateAudioSwitch(); if (store.audioOn) { ensureAudio(); beep(880, 0.1, 0.2); } toast(store.audioOn ? 'Audio cues on' : 'Audio cues off'); }; })();
 (function () { const b = document.getElementById('bwAdd'), i = document.getElementById('bwInput'); if (b) b.onclick = logBodyweight; if (i) i.addEventListener('keydown', e => { if (e.key === 'Enter') logBodyweight(); }); })();
 document.getElementById('onbBack').addEventListener('click', e => { if (e.target.id === 'onbBack') closeOnboarding(); });
+document.getElementById('swapBack').addEventListener('click', e => { if (e.target.id === 'swapBack') closeSwap(); });
+(function () { const sw = document.getElementById('mileSwitch'); if (sw) { sw.classList.toggle('on', !!store.alwaysMile); sw.onclick = () => { store.alwaysMile = !store.alwaysMile; saveStore(); sw.classList.toggle('on', !!store.alwaysMile); renderToday(); toast(store.alwaysMile ? 'Mile opener on every day' : 'Smart day-aware warm-ups'); }; } })();
 if (!profileComplete()) setTimeout(() => openOnboarding(true), 500);   // first-run baseline setup
 scheduleReminder();
 // In-app nudge: if reminders on, not done today, and past reminder time
